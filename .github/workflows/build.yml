@@ -31,7 +31,7 @@ jobs:
       uses: microsoft/setup-msbuild@v1.0.2
 
     - name: Run msbuild command in Release
-      run: MSBuild /property:Configuration=Release /property:Platform=x64
+      run: MSBuild /property:Configuration=Release /property:Platform=x64 speckleautocad.sln
 
     - name: Get assembly version
       id: getAssemblyVersion
