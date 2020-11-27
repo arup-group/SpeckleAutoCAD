@@ -40,6 +40,6 @@ Name: autocad20; Description: Speckle for AutoCAD/Civil3D 2020 WIP;
 Name: autocad21; Description: Speckle for AutoCAD/Civil3D 2021 WIP;
 
 [Files]
-Source: "..Build\Release\SpeckleAutoCAD2020\*"; DestDir: "{userappdata}\SpeckleAutoCAD\2020\"; Flags: ignoreversion recursesubdirs; Components: autocad20
+Source: "..\Build\Release\SpeckleAutoCAD2020\*"; DestDir: "{userappdata}\SpeckleAutoCAD\2020\"; Flags: ignoreversion recursesubdirs; Components: autocad20
 Source: "..\Build\Release\SpeckleAutoCAD2021\*"; DestDir: "{userappdata}\SpeckleAutoCAD\2021\"; Flags: ignoreversion recursesubdirs; Components: autocad21
 
