@@ -29,8 +29,8 @@ ChangesAssociations=yes
 ; PrivilegesRequired must be "none" to access ProgramData
 PrivilegesRequired=none
 VersionInfoVersion={#AppVersion}
-SignTool=signtool
-SignedUninstaller=yes
+; SignTool=signtool
+; SignedUninstaller=yes
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
