@@ -29,6 +29,8 @@ ChangesAssociations=yes
 ; PrivilegesRequired must be "none" to access ProgramData
 PrivilegesRequired=none
 VersionInfoVersion={#AppVersion}
+SignTool=signtool
+SignedUninstaller=yes
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -38,6 +40,6 @@ Name: autocad20; Description: Speckle for AutoCAD/Civil3D 2020 WIP;
 Name: autocad21; Description: Speckle for AutoCAD/Civil3D 2021 WIP;
 
 [Files]
-Source: "..\SpeckleAutoCAD2020\Build\Release\*"; DestDir: "{userappdata}\SpeckleAutoCAD\2020\"; Flags: ignoreversion recursesubdirs; Components: autocad20
-Source: "..\SpeckleAutoCAD2021\Build\Release\*"; DestDir: "{userappdata}\SpeckleAutoCAD\2021\"; Flags: ignoreversion recursesubdirs; Components: autocad21
+Source: "..Build\Release\SpeckleAutoCAD2020\*"; DestDir: "{userappdata}\SpeckleAutoCAD\2020\"; Flags: ignoreversion recursesubdirs; Components: autocad20
+Source: "..\Build\Release\SpeckleAutoCAD2021\*"; DestDir: "{userappdata}\SpeckleAutoCAD\2021\"; Flags: ignoreversion recursesubdirs; Components: autocad21
 

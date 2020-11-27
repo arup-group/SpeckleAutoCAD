@@ -8,6 +8,7 @@ on:
     tags-ignore:
       - '*.*'
 
+
 jobs:
   buildSolution:
     name: Build Speckle AutoCAD plugin
@@ -16,6 +17,87 @@ jobs:
     - name: Check out repository
       uses: actions/checkout@v2
       with:
-        submodules: 'recursive'
-    - name: list files
-      run: dir /s /b
+        submodules: 'recursive'  
+
+    - name: Install the latest version of nuget
+      uses: nuget/setup-nuget@v1
+      with:
+        nuget-version: 'latest'
+
+    - name: Cache the packages folder
+      uses: actions/cache@v1
+      id: cache
+      with:
+        path: ${{ github.workspace }}\packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/**.config') }}
+    
+    - name: Update NuGet source credentials
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: nuget source Update -Name "ArupGitHubPackages" -Source "https://nuget.pkg.github.com/arup-group/index.json" -UserName arup-group -Password "${{ secrets.PAT_FOR_GITHUB_PACKAGES }}"
+    
+    - name: NuGet restore
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: nuget restore SpeckleAutoCAD.sln
+
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    - name: Run msbuild command in Release
+      run: MSBuild /property:Configuration=Release /property:Platform=x64
+
+    - name: Get assembly version
+      id: getAssemblyVersion
+      run: |
+        $version += (Get-Item $env:GITHUB_WORKSPACE\Build\Release\SpeckleAutoCAD2020\SpeckleAutoCAD2020.dll).VersionInfo.FileVersion
+        echo "::set-output name=version::$version"
+        
+    - name: Decode PFX cert
+      id: decodePfxCert
+      run: |
+        $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.BASE64_PFX_CERT }}")
+        $certificatePath = Join-Path -Path $env:GITHUB_WORKSPACE\Installer -ChildPath GitHubActionsWorkflow.pfx
+        [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
+        echo "::set-output name=pfxPath::$certificatePath"
+        
+    - name: Create installer
+      run: iscc /dAppVersion="${{ steps.getAssemblyVersion.outputs.version }}" "/Ssigntool=C:\Program Files (x86)\Windows Kits\10\bin\10.0.17763.0\x86\signtool.exe sign /f ""${{ steps.decodePfxCert.outputs.pfxPath }}"" /p ""${{ secrets.PFX_CERT_PASSWORD }}"" /t http://timestamp.comodoca.com $f" Installer/InstallerScript.iss
+      shell: cmd
+    
+    - name: Remove PFX cert
+      run: Remove-Item -path "${{ steps.decodePfxCert.outputs.pfxPath }}"
+    
+    - name: Calculate tag version
+      id: calculateTagVersion
+      run: |
+        $tag = "${{ steps.getAssemblyVersion.outputs.version }}.$($env:GITHUB_RUN_ID%65536)"
+        echo "::set-output name=tag::$tag"
+  
+    - name: Upload build files
+      uses: actions/upload-artifact@v2-preview
+      with:
+        name: SpeckleAutoCAD-${{ steps.calculateTagVersion.outputs.tag }}
+        path: 'Build'
+  
+    - name: Create release
+      id: createRelease
+      uses: actions/create-release@latest
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+      with:
+        tag_name: ${{ steps.calculateTagVersion.outputs.tag }}
+        release_name: Speckle AutoCAD Installer ${{ steps.calculateTagVersion.outputs.tag }}
+        body: |
+          Automated release of Speckle AutoCAD Installer
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Asset
+      id: uploadReleaseAsset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.createRelease.outputs.upload_url }}  
+        asset_path: Installer/Build/SpeckleAutoCADInstaller.exe
+        asset_name: SpeckleAutoCADInstaller.exe
+        asset_content_type: application/vnd.microsoft.portable-executable
