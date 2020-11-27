@@ -24,19 +24,7 @@ jobs:
       with:
         nuget-version: 'latest'
 
-    - name: Cache the packages folder
-      uses: actions/cache@v1
-      id: cache
-      with:
-        path: ${{ github.workspace }}\packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/**.config') }}
-    
-    - name: Update NuGet source credentials
-      if: steps.cache.outputs.cache-hit != 'true'
-      run: nuget source Update -Name "ArupGitHubPackages" -Source "https://nuget.pkg.github.com/arup-group/index.json" -UserName arup-group -Password "${{ secrets.PAT_FOR_GITHUB_PACKAGES }}"
-    
     - name: NuGet restore
-      if: steps.cache.outputs.cache-hit != 'true'
       run: nuget restore SpeckleAutoCAD.sln
 
     - name: Add msbuild to PATH
@@ -51,20 +39,9 @@ jobs:
         $version += (Get-Item $env:GITHUB_WORKSPACE\Build\Release\SpeckleAutoCAD2020\SpeckleAutoCAD2020.dll).VersionInfo.FileVersion
         echo "::set-output name=version::$version"
         
-    - name: Decode PFX cert
-      id: decodePfxCert
-      run: |
-        $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.BASE64_PFX_CERT }}")
-        $certificatePath = Join-Path -Path $env:GITHUB_WORKSPACE\Installer -ChildPath GitHubActionsWorkflow.pfx
-        [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
-        echo "::set-output name=pfxPath::$certificatePath"
-        
     - name: Create installer
-      run: iscc /dAppVersion="${{ steps.getAssemblyVersion.outputs.version }}" "/Ssigntool=C:\Program Files (x86)\Windows Kits\10\bin\10.0.17763.0\x86\signtool.exe sign /f ""${{ steps.decodePfxCert.outputs.pfxPath }}"" /p ""${{ secrets.PFX_CERT_PASSWORD }}"" /t http://timestamp.comodoca.com $f" Installer/InstallerScript.iss
+      run: iscc /dAppVersion="${{ steps.getAssemblyVersion.outputs.version }}" Installer/InstallerScript.iss
       shell: cmd
-    
-    - name: Remove PFX cert
-      run: Remove-Item -path "${{ steps.decodePfxCert.outputs.pfxPath }}"
     
     - name: Calculate tag version
       id: calculateTagVersion
