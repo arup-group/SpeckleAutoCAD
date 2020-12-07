@@ -24,11 +24,14 @@ jobs:
       with:
         nuget-version: 'latest'
 
+    - name: NuGet restore
+      run: nuget restore SpeckleAutoCAD.sln
+      
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
 
     - name: Run msbuild command in Release
-      run: msbuild speckleautocad.sln -restore -p:Configuration=release57 -p:platform=x64
+      run: msbuild speckleautocad.sln -p:Configuration=release57 -p:platform=x64
         
     - name: Create installer
       run: iscc /dAppVersion="1.0.0" Installer/InstallerScript.iss
