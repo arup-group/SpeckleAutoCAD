@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ApplicationPackage SchemaVersion="1.0" ProductType="Application" Name="SpeckleAutoCAD" AppVersion="1.0.0" Description="Speckle for AutoCAD" Author="George Aggrey" Icon="./Contents/Resources/Speckle32.png" OnlineDocumentation="https://speckle.systems/" HelpFile="" ProductCode="{9083E2A0-B671-4991-B6F4-C55A8F31AB0A}" FriendlyVersion="1.0" SupportedLocales="Enu" AutodeskProduct="AutoCAD">
+  <CompanyDetails Name="Arup" Phone=" " Url="http://www.arup.com" Email="george.aggrey@arup.com" />
+  <Components Description="SpeckleAutoCAD2020">
+    <RuntimeRequirements SupportPath="./Contents/Win64/2020" OS="Win64" Platform="AutoCAD*" SeriesMin="R23.0" SeriesMax="R23.9" />
+    <ComponentEntry AppName="Speckle" Version="1.0" ModuleName="./Contents/Win64/2020/SpeckleAutoCAD2020.dll" AppDescription="Speckle for AutoCAD" LoadOnAppearance="True" LoadOnAutoCADStartup="True" LoadOnCommandInvocation="True">
+    </ComponentEntry>
+  </Components>
+</ApplicationPackage>

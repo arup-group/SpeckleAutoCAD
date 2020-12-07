@@ -1,0 +1,71 @@
+name: Build solution and installer
+
+on: 
+  push:
+    branches:
+      - 'master'
+      - 'installer2'
+    tags-ignore:
+      - '*.*'
+
+
+jobs:
+  buildSolution:
+    name: Build Speckle AutoCAD plugin
+    runs-on: windows-latest
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'  
+
+    - name: Install the latest version of nuget
+      uses: nuget/setup-nuget@v1
+      with:
+        nuget-version: 'latest'
+
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    - name: Run msbuild command in Release
+      run: msbuild speckleautocad.sln -restore -p:Configuration=release57 -p:platform=x64
+        
+    - name: Create installer
+      run: iscc /dAppVersion="1.0.0" Installer/InstallerScript.iss
+      shell: cmd
+    
+    - name: Calculate tag version
+      id: calculateTagVersion
+      run: |
+        $tag = "1.0.0.$($env:GITHUB_RUN_ID%65536)"
+        echo "::set-output name=tag::$tag"
+  
+    - name: Upload build files
+      uses: actions/upload-artifact@v2-preview
+      with:
+        name: SpeckleAutoCAD-${{ steps.calculateTagVersion.outputs.tag }}
+        path: 'Build'
+  
+    - name: Create release
+      id: createRelease
+      uses: actions/create-release@latest
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+      with:
+        tag_name: ${{ steps.calculateTagVersion.outputs.tag }}
+        release_name: Speckle AutoCAD Installer ${{ steps.calculateTagVersion.outputs.tag }}
+        body: |
+          Automated release of Speckle AutoCAD Installer
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Asset
+      id: uploadReleaseAsset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.createRelease.outputs.upload_url }}  
+        asset_path: Installer/Build/SpeckleAutoCADInstaller.exe
+        asset_name: SpeckleAutoCADInstaller.exe
+        asset_content_type: application/vnd.microsoft.portable-executable
