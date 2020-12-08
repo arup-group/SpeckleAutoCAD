@@ -32,10 +32,21 @@ jobs:
 
     - name: Run msbuild command in Release
       run: msbuild speckleautocad.sln -p:Configuration=release57 -p:platform=x64
-        
+
+    - name: Decode PFX cert
+      id: decodePfxCert
+      run: |
+        $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.BASE64_PFX_CERT }}")
+        $certificatePath = Join-Path -Path $env:GITHUB_WORKSPACE\Installer -ChildPath GitHubActionsWorkflow.pfx
+        [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
+        echo "::set-output name=pfxPath::$certificatePath"
+
     - name: Create installer
-      run: iscc /dAppVersion="1.0.0" Installer/InstallerScript.iss
+      run: iscc /dAppVersion="1.0.0" "/Ssigntool=C:\Program Files (x86)\Windows Kits\10\bin\10.0.17763.0\x86\signtool.exe sign /f ""${{ steps.decodePfxCert.outputs.pfxPath }}"" /p ""${{ secrets.PFX_CERT_PASSWORD }}"" /t http://timestamp.comodoca.com $f" Installer/InstallerScript.iss
       shell: cmd
+    
+    - name: Remove PFX cert
+      run: Remove-Item -path "${{ steps.decodePfxCert.outputs.pfxPath }}"
     
     - name: Calculate tag version
       id: calculateTagVersion
