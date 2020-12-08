@@ -175,8 +175,10 @@
       <SourceDLLs Include="$(TargetDir)\**\*.*" />
       <SourceManifest Include="$(ProjectDir)PackageContents.xml" />
       <Icons Include="$(SolutionDir)\shared\assets\*.*" />
+	  <SpeckleAppDLLs Include="$(SolutionDir)\Debug\SpeckleAutoCADApp\**\*.*" />
     </ItemGroup>
     <Copy DestinationFolder="$(AppData)\Autodesk\ApplicationPlugins\$(ProjectName).bundle\Contents\Win64\2021\%(RecursiveDir)" SourceFiles="@(SourceDLLs)" />
+	<Copy DestinationFolder="$(AppData)\Autodesk\ApplicationPlugins\$(ProjectName).bundle\Contents\Win64\2021\%(RecursiveDir)" SourceFiles="@(SpeckleAppDLLs)" />
     <Copy DestinationFolder="$(AppData)\Autodesk\ApplicationPlugins\$(ProjectName).bundle" SourceFiles="@(SourceManifest)" />
     <Copy DestinationFolder="$(AppData)\Autodesk\ApplicationPlugins\$(ProjectName).bundle\Contents\Resources" SourceFiles="@(Icons)" />
   </Target>
@@ -185,9 +187,11 @@
       <SourceDLLs Include="$(TargetDir)\**\*.*" />
       <SourceManifest Include="$(ProjectDir)PackageContents.xml" />
       <Icons Include="$(SolutionDir)\shared\assets\*.*" />
+	  <SpeckleAppDLLs Include="$(SolutionDir)\Release\SpeckleAutoCADApp\**\*.*" />
     </ItemGroup>
     <Message Importance="High" Text="RELEASE copy from $(TargetDir) to $(SolutionDir)\Release\$(ProjectName)\" />
     <Copy DestinationFolder="$(SolutionDir)\Release\$(ProjectName)\Contents\Win64\2021\%(RecursiveDir)" SourceFiles="@(SourceDLLs)" />
+	<Copy DestinationFolder="$(SolutionDir)\Release\$(ProjectName)\Contents\Win64\2021\%(RecursiveDir)" SourceFiles="@(SpeckleAppDLLs)" />
     <Copy DestinationFolder="$(SolutionDir)\Release\$(ProjectName)\" SourceFiles="@(SourceManifest)" />
     <Copy DestinationFolder="$(SolutionDir)\Release\$(ProjectName)\Contents\Resources" SourceFiles="@(Icons)" />
   </Target>
