@@ -1,13 +1,14 @@
 ﻿using SpeckleUiBase;
 using System.Collections.Generic;
+using SpeckleAutoCAD;
 
 namespace SpeckleAutoCADApp.UI
 {
     public partial class SpeckleUIBindingsAutoCAD : SpeckleUIBindings
     {
-        public SpeckleUIBindingsAutoCAD() : base()
+        public SpeckleUIBindingsAutoCAD(DataPipeClient dataPipeClient) : base()
         {
-
+            this.dataPipeClient = dataPipeClient;
         }
 
         public override void AddObjectsToSender(string args)
@@ -37,7 +38,7 @@ namespace SpeckleAutoCADApp.UI
 
         public override string GetApplicationHostName()
         {
-            return string.Empty;
+            return "AutoCAD";
         }
 
         public override string GetDocumentId()
@@ -52,12 +53,26 @@ namespace SpeckleAutoCADApp.UI
 
         public override string GetFileClients()
         {
-            return string.Empty;
+            var request = new Request
+            {
+                Operation = Operation.GetFileClients,
+                Data = string.Empty
+            };
+
+            var response = dataPipeClient.SendRequest(request);
+            return response.Data;
         }
 
         public override string GetFileName()
         {
-            return string.Empty;
+            var request = new Request
+            {
+                Operation = Operation.GetFileName,
+                Data = string.Empty
+            };
+
+            var response = dataPipeClient.SendRequest(request);
+            return response.Data;
         }
 
         public override List<ISelectionFilter> GetSelectionFilters()
@@ -94,5 +109,7 @@ namespace SpeckleAutoCADApp.UI
         {
             
         }
+
+        private DataPipeClient dataPipeClient;
     }
 }

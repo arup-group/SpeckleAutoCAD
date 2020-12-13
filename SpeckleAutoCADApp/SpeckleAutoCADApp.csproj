@@ -206,6 +206,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\SpeckleAutoCADLib\SpeckleAutoCADLib.csproj">
+      <Project>{9c8b3047-6aa1-47e9-ad45-76e2d0819931}</Project>
+      <Name>SpeckleAutoCADLib</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SpeckleUi\SpeckleUiBase\SpeckleUiBase.csproj">
       <Project>{ce40c576-3b05-443a-a1ba-cb3a796d0084}</Project>
       <Name>SpeckleUiBase</Name>

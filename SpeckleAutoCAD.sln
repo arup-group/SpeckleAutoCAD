@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpeckleAutoCAD2020", "Speck
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpeckleAutoCAD2021", "SpeckleAutoCAD2021\SpeckleAutoCAD2021.csproj", "{E634BBCA-2005-4F23-A227-E75CE9083505}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpeckleAutoCADLib", "SpeckleAutoCADLib\SpeckleAutoCADLib.csproj", "{9C8B3047-6AA1-47E9-AD45-76E2D0819931}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Shared\Shared.projitems*{9083e2a0-b671-4991-b6f4-c55a8f31ab0a}*SharedItemsImports = 4
@@ -93,6 +95,22 @@ Global
 		{E634BBCA-2005-4F23-A227-E75CE9083505}.Release57|Any CPU.Build.0 = Release57|Any CPU
 		{E634BBCA-2005-4F23-A227-E75CE9083505}.Release57|x64.ActiveCfg = Release57|x64
 		{E634BBCA-2005-4F23-A227-E75CE9083505}.Release57|x64.Build.0 = Release57|x64
+		{9C8B3047-6AA1-47E9-AD45-76E2D0819931}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C8B3047-6AA1-47E9-AD45-76E2D0819931}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C8B3047-6AA1-47E9-AD45-76E2D0819931}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9C8B3047-6AA1-47E9-AD45-76E2D0819931}.Debug|x64.Build.0 = Debug|Any CPU
+		{9C8B3047-6AA1-47E9-AD45-76E2D0819931}.Debug57|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C8B3047-6AA1-47E9-AD45-76E2D0819931}.Debug57|Any CPU.Build.0 = Debug|Any CPU
+		{9C8B3047-6AA1-47E9-AD45-76E2D0819931}.Debug57|x64.ActiveCfg = Debug57|x64
+		{9C8B3047-6AA1-47E9-AD45-76E2D0819931}.Debug57|x64.Build.0 = Debug57|x64
+		{9C8B3047-6AA1-47E9-AD45-76E2D0819931}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C8B3047-6AA1-47E9-AD45-76E2D0819931}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C8B3047-6AA1-47E9-AD45-76E2D0819931}.Release|x64.ActiveCfg = Release|Any CPU
+		{9C8B3047-6AA1-47E9-AD45-76E2D0819931}.Release|x64.Build.0 = Release|Any CPU
+		{9C8B3047-6AA1-47E9-AD45-76E2D0819931}.Release57|Any CPU.ActiveCfg = Release|Any CPU
+		{9C8B3047-6AA1-47E9-AD45-76E2D0819931}.Release57|Any CPU.Build.0 = Release|Any CPU
+		{9C8B3047-6AA1-47E9-AD45-76E2D0819931}.Release57|x64.ActiveCfg = Debug57|x64
+		{9C8B3047-6AA1-47E9-AD45-76E2D0819931}.Release57|x64.Build.0 = Debug57|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
