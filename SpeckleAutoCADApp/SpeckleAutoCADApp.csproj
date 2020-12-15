@@ -176,6 +176,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Sender.cs" />
     <Compile Include="SpeckleUiBindings.cs" />
   </ItemGroup>
   <ItemGroup>

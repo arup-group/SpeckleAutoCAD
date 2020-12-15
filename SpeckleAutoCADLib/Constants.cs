@@ -25,6 +25,16 @@ namespace SpeckleAutoCAD
         RemoveSelectionFromSender,
         SelectClientObjects,
         UpdateSender,
+        LoadStreamState,
+        SaveStreamState,
+        LoadClientState,
+        SaveClientState
 
     }
+
+    public static class Constants 
+    {
+        public const string SpeckleAutoCADStreamsKey = "SpeckleAutoCADStreams";
+    }
+    
 }

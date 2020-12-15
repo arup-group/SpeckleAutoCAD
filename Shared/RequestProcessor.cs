@@ -28,7 +28,7 @@ namespace SpeckleAutoCAD
                     response.Operation = request.Operation;
                     pr.ReportProgress(() =>
                     {
-                        response.Data = document.Database.Filename;
+                        response.Data = document.Name;
                     });
 
                     response.StatusCode = 200;
@@ -40,6 +40,15 @@ namespace SpeckleAutoCAD
                     //    response.Data = document.Database.Filename;
                     //});
                     response.Data = string.Empty;
+                    response.StatusCode = 200;
+                    break;
+                case Operation.GetDocumentLocation:
+                    response.Operation = request.Operation;
+                    pr.ReportProgress(() =>
+                    {
+                        response.Data = document.Database.Filename;
+                    });
+
                     response.StatusCode = 200;
                     break;
                 default:

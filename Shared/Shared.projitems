@@ -13,10 +13,11 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Assets\" />
-    <Folder Include="$(MSBuildThisFileDirectory)Helpers\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\ProgressReporter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\SpeckleStateManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\StringExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Program.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RequestProcessor.cs" />
   </ItemGroup>

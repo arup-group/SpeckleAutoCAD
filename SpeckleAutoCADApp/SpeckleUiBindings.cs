@@ -1,6 +1,8 @@
 ﻿using SpeckleUiBase;
 using System.Collections.Generic;
 using SpeckleAutoCAD;
+using Newtonsoft.Json;
+using SpeckleCore;
 
 namespace SpeckleAutoCADApp.UI
 {
@@ -26,10 +28,7 @@ namespace SpeckleAutoCADApp.UI
             
         }
 
-        public override void AddSender(string args)
-        {
-            
-        }
+
 
         public override void BakeReceiver(string args)
         {
@@ -43,12 +42,19 @@ namespace SpeckleAutoCADApp.UI
 
         public override string GetDocumentId()
         {
-            return string.Empty;
+            return GetDocHash();
         }
 
         public override string GetDocumentLocation()
         {
-            return string.Empty;
+            var request = new Request
+            {
+                Operation = Operation.GetFileName,
+                Data = string.Empty
+            };
+
+            var response = dataPipeClient.SendRequest(request);
+            return response.Data;
         }
 
         public override string GetFileClients()
@@ -77,7 +83,21 @@ namespace SpeckleAutoCADApp.UI
 
         public override List<ISelectionFilter> GetSelectionFilters()
         {
-            return new List<ISelectionFilter>();
+            return new List<ISelectionFilter>()
+            {
+                new ElementsSelectionFilter
+                {
+                    Name = "Selection",
+                    Icon = "mouse",
+                    Selection = new List<string>()
+                },
+                new ListSelectionFilter
+                {
+                    Name = "Object Type",
+                    Icon = "category",
+                    Values = new List<string>() { "Arc", "Line", "Polyline" }
+                },
+            };
         }
 
         public override void PushSender(string args)
@@ -110,6 +130,13 @@ namespace SpeckleAutoCADApp.UI
             
         }
 
+        private string GetDocHash()
+        {
+            return SpeckleCore.Converter.getMd5Hash(GetDocumentLocation() + GetFileName());
+        }
+
         private DataPipeClient dataPipeClient;
+        private List<dynamic> clients;
+        private List<SpeckleStream> speckleStreams;
     }
 }

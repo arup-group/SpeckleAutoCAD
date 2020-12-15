@@ -42,40 +42,46 @@ namespace SpeckleAutoCAD
             {
                 var document = Application.DocumentManager.MdiActiveDocument;
                 var civilDocument = Autodesk.Civil.ApplicationServices.CivilApplication.ActiveDocument;
-                var requestProcessor = new RequestProcessor(document, civilDocument);
-                var dataPipeServer = new DataPipeServer(requestProcessor.ProcessRequest);
-                pipeServerThread = new Thread(dataPipeServer.Run);
-                pipeServerThread.Start();
+                //var requestProcessor = new RequestProcessor(document, civilDocument);
+                //var dataPipeServer = new DataPipeServer(requestProcessor.ProcessRequest);
+                //pipeServerThread = new Thread(dataPipeServer.Run);
+                //pipeServerThread.Start();
 
-                //ObjectIdCollection alignments = doc.GetAlignmentIds();
-                //ObjectIdCollection sites = doc.GetSiteIds();
-                //String docInfo = String.Format("\nHello Speckle!");
-                //Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage(docInfo);
-                //SpeckleWindow = new SpeckleUiWindow(bindings, @"https://appui.speckle.systems/#/");
+                ////ObjectIdCollection alignments = doc.GetAlignmentIds();
+                ////ObjectIdCollection sites = doc.GetSiteIds();
+                ////String docInfo = String.Format("\nHello Speckle!");
+                ////Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage(docInfo);
+                ////SpeckleWindow = new SpeckleUiWindow(bindings, @"https://appui.speckle.systems/#/");
 
-                //var helper = new System.Windows.Interop.WindowInteropHelper(SpeckleWindow);
-                //helper.Owner = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle;
+                ////var helper = new System.Windows.Interop.WindowInteropHelper(SpeckleWindow);
+                ////helper.Owner = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle;
 
-                //SpeckleWindow.Show();
-                ProcessStartInfo psi = new ProcessStartInfo()
-                {
-                    FileName = GetAssemblyDirectory() + "\\SpeckleAutoCADApp",
-                    Arguments = $"{dataPipeServer.ClientInputHandle} {dataPipeServer.ClientOutputHandle}",
-                    UseShellExecute = false
-                };
+                ////SpeckleWindow.Show();
+                //ProcessStartInfo psi = new ProcessStartInfo()
+                //{
+                //    FileName = GetAssemblyDirectory() + "\\SpeckleAutoCADApp",
+                //    Arguments = $"{dataPipeServer.ClientInputHandle} {dataPipeServer.ClientOutputHandle}",
+                //    UseShellExecute = false
+                //};
 
-                speckleAutoCADAppProcess = Process.Start(psi);
-                speckleAutoCADAppProcess.WaitForInputIdle();
-                WaitForAppWindow();
-                if (speckleAutoCADAppProcess.MainWindowHandle == IntPtr.Zero)
-                {
-                    throw new System.Exception("Unable to initialize Speckle");
-                }
+                //speckleAutoCADAppProcess = Process.Start(psi);
+                //speckleAutoCADAppProcess.WaitForInputIdle();
+                //WaitForAppWindow();
+                //if (speckleAutoCADAppProcess.MainWindowHandle == IntPtr.Zero)
+                //{
+                //    throw new System.Exception("Unable to initialize Speckle");
+                //}
 
-                speckleAutoCADAppWindowHost = new SpeckleAutoCADAppWindowHost(speckleAutoCADAppProcess.MainWindowHandle);
-                speckleAutoCADWindow = new SpeckleAutoCADWindow(speckleAutoCADAppWindowHost);
-                speckleAutoCADWindow.ShowDialog();
-                
+                //speckleAutoCADAppWindowHost = new SpeckleAutoCADAppWindowHost(speckleAutoCADAppProcess.MainWindowHandle);
+                //speckleAutoCADWindow = new SpeckleAutoCADWindow(speckleAutoCADAppWindowHost);
+                //speckleAutoCADWindow.ShowDialog();
+
+                string state;
+                var data = System.IO.File.ReadAllText(@"c:\temp\text1.txt");
+                //Helpers.SpeckleStateManager.WriteState(document, Constants.SpeckleAutoCADStreamsKey, data);
+                data = Helpers.SpeckleStateManager.ReadState(document, Constants.SpeckleAutoCADStreamsKey);
+                System.IO.File.WriteAllText(@"c:\temp\text2.txt", data);
+
 
 
             }
@@ -119,7 +125,7 @@ namespace SpeckleAutoCAD
         {
             try
             {
-                if (!speckleAutoCADAppProcess.HasExited)
+                if (speckleAutoCADAppProcess != null && !speckleAutoCADAppProcess.HasExited)
                 {
                     speckleAutoCADAppProcess.Kill();
                 }
