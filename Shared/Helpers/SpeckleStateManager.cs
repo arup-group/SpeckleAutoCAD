@@ -54,7 +54,7 @@ namespace SpeckleAutoCAD.Helpers
             var db = doc.Database;
             Xrecord xRecord;
 
-            try
+            using (doc.LockDocument())
             {
                 using (Transaction trans = db.TransactionManager.StartTransaction())
                 {
@@ -77,10 +77,6 @@ namespace SpeckleAutoCAD.Helpers
 
                     trans.Commit();
                 }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Error writing Speckle state.", ex);
             }
         }
 

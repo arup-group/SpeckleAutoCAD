@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using SpeckleAutoCAD;
 using Newtonsoft.Json;
 using SpeckleCore;
+using System;
 
 namespace SpeckleAutoCADApp.UI
 {
@@ -53,32 +54,82 @@ namespace SpeckleAutoCADApp.UI
                 Data = string.Empty
             };
 
-            var response = dataPipeClient.SendRequest(request);
-            return response.Data;
+            if (dataPipeClient != null)
+            {
+                var response = dataPipeClient.SendRequest(request);
+                return response.Data;
+            }
+            else
+            {
+                return string.Empty;
+            }
         }
 
         public override string GetFileClients()
         {
-            var request = new Request
+            try
             {
-                Operation = Operation.GetFileClients,
-                Data = string.Empty
-            };
+                clients = new List<dynamic>();
+                speckleStreams = new List<SpeckleStream>();
 
-            var response = dataPipeClient.SendRequest(request);
-            return response.Data;
+                if (dataPipeClient != null)
+                {
+                    var request = new Request
+                    {
+                        Operation = Operation.LoadClientState,
+                        Data = string.Empty
+                    };
+
+                    var response = dataPipeClient.SendRequest(request);
+                    if (!string.IsNullOrEmpty(response.Data))
+                    {
+                        clients = JsonConvert.DeserializeObject<List<dynamic>>(response.Data);
+                        return response.Data;
+                    }
+                    else
+                    {
+                        return JsonConvert.SerializeObject(clients);
+                    }
+                }
+                else
+                {
+                    return JsonConvert.SerializeObject(clients);
+                }                
+            }
+            catch
+            {
+                clients = new List<dynamic>();
+                speckleStreams = new List<SpeckleStream>();
+                return JsonConvert.SerializeObject(clients);
+            }
+
         }
 
         public override string GetFileName()
         {
-            var request = new Request
+            if (dataPipeClient != null)
             {
-                Operation = Operation.GetFileName,
-                Data = string.Empty
-            };
+                var request = new Request
+                {
+                    Operation = Operation.GetFileName,
+                    Data = string.Empty
+                };
 
-            var response = dataPipeClient.SendRequest(request);
-            return response.Data;
+                var response = dataPipeClient.SendRequest(request);
+                if (!string.IsNullOrEmpty(response.Data))
+                {
+                    return System.IO.Path.GetFileName(response.Data);
+                }
+                else
+                {
+                    return string.Empty;
+                }
+            }
+            else
+            {
+                return string.Empty;
+            }
+
         }
 
         public override List<ISelectionFilter> GetSelectionFilters()
@@ -95,7 +146,7 @@ namespace SpeckleAutoCADApp.UI
                 {
                     Name = "Object Type",
                     Icon = "category",
-                    Values = new List<string>() { "Arc", "Line", "Polyline" }
+                    Values = new List<string>() { Constants.Arc, Constants.Line, Constants.Polyline }
                 },
             };
         }

@@ -18,14 +18,21 @@ namespace SpeckleAutoCADApp
     {
         void App_Startup(object sender, StartupEventArgs e)
         {
-            if (e.Args.Length != 2)
+            DataPipeClient dataPipeClient;
+            SpeckleUIBindingsAutoCAD bindings;
+
+            if (e.Args.Length == 2)
             {
-                this.Shutdown();
-                return;
+                dataPipeClient = new DataPipeClient(e.Args[0], e.Args[1]);
+                bindings = new SpeckleUIBindingsAutoCAD(dataPipeClient);
+                //bindings = new SpeckleUIBindingsAutoCAD(null);
+            }
+            else
+            {
+                bindings = new SpeckleUIBindingsAutoCAD(null);
             }
 
-            var dataPipeClient = new DataPipeClient(e.Args[0], e.Args[1]);
-            var bindings = new SpeckleUIBindingsAutoCAD(dataPipeClient);
+
 
             // Create main application window, starting minimized if specified
             SpeckleWindow = new SpeckleUiWindow(bindings, @"https://appui.speckle.systems/#/");

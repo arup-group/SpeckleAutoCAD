@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using SpeckleCore;
 using System.Reflection;
 using System;
+using System.Linq;
 
 namespace SpeckleAutoCADApp.UI
 {
@@ -22,7 +23,12 @@ namespace SpeckleAutoCADApp.UI
                 Operation = Operation.SaveClientState,
                 Data = JsonConvert.SerializeObject(clients)
             };
+
             var response = dataPipeClient.SendRequest(request);
+            if (response.StatusCode != 200)
+            {
+                return;
+            }
 
             request.Operation = Operation.SaveStreamState;
             request.Data = JsonConvert.SerializeObject(speckleStreams);
@@ -41,140 +47,89 @@ namespace SpeckleAutoCADApp.UI
 
         private IEnumerable<SpeckleObject> GetSelectionFilterObjects(ISelectionFilter filter, string clientId, string streamId)
         {
-            //var doc = CurrentDoc.Document;
+            Request request;
+            Response response;
             IEnumerable<SpeckleObject> objects = new List<SpeckleObject>();
+            var selectionIds = new List<long>();
 
-            //var selectionIds = new List<string>();
+            try
+            {
+                if (dataPipeClient != null) return objects;
 
-            //if (filter.Name == "Selection")
-            //{
-            //    var selFilter = filter as ElementsSelectionFilter;
-            //    selectionIds = selFilter.Selection;
-            //}
-            //else if (filter.Name == "Category")
-            //{
-            //    var catFilter = filter as ListSelectionFilter;
-            //    var bics = new List<BuiltInCategory>();
-            //    var categories = Globals.GetCategories(doc);
-            //    IList<ElementFilter> elementFilters = new List<ElementFilter>();
+                if (filter.Name == "Selection")
+                {
 
-            //    foreach (var cat in catFilter.Selection)
-            //    {
-            //        elementFilters.Add(new ElementCategoryFilter(categories[cat].Id));
-            //    }
-            //    LogicalOrFilter categoryFilter = new LogicalOrFilter(elementFilters);
+                }
+                else if (filter.Name == "Category")
+                {
+                    var catFilter = filter as ListSelectionFilter;
+                    foreach (var cat in catFilter.Selection)
+                    {
+                        switch (cat)
+                        {
+                            case Constants.Line:
+                                request = new Request
+                                {
+                                    Operation = Operation.GetAllLineIds,
+                                    Data = string.Empty
+                                };
 
-            //    selectionIds = new FilteredElementCollector(doc)
-            //      .WhereElementIsNotElementType()
-            //      .WhereElementIsViewIndependent()
-            //      .WherePasses(categoryFilter)
-            //      .Select(x => x.UniqueId).ToList();
+                                response = dataPipeClient.SendRequest(request);
+                                if (!string.IsNullOrEmpty(response.Data))
+                                {
+                                    selectionIds.AddRange(JsonConvert.DeserializeObject<List<long>>(response.Data));
+                                }
+                                break;
+                        }
+                    }
+                }
 
-            //}
-            //else if (filter.Name == "View")
-            //{
-            //    var viewFilter = filter as ListSelectionFilter;
+                objects = selectionIds.Select(id =>
+                {
+                    var temp = new SpeckleObject();
+                    temp.Properties["autocadhandle"] = id;
+                    temp.Properties["__type"] = "Sent Object";
+                    return temp;
+                });
 
-            //    var views = new FilteredElementCollector(doc)
-            //      .WhereElementIsNotElementType()
-            //      .OfClass(typeof(View))
-            //      .Where(x => viewFilter.Selection.Contains(x.Name));
+                var myStream = speckleStreams.FirstOrDefault(st => st.StreamId == streamId);
+                myStream.Objects.Clear();
+                myStream.Objects.AddRange(objects);
 
-            //    foreach (var view in views)
-            //    {
-            //        var ids = new FilteredElementCollector(doc, view.Id)
-            //        .WhereElementIsNotElementType()
-            //        .WhereElementIsViewIndependent()
-            //        .Where(x => x.IsPhysicalElement())
-            //        .Select(x => x.UniqueId).ToList();
+                var myClient = clients.FirstOrDefault(cl => (string)cl._id == (string)clientId);
+                myClient.objects = JsonConvert.DeserializeObject<dynamic>(JsonConvert.SerializeObject(myStream.Objects));
 
-            //        selectionIds = selectionIds.Union(ids).ToList();
-            //    }
-            //}
-            //else if (filter.Name == "Parameter")
-            //{
-            //    try
-            //    {
-            //        var propFilter = filter as PropertySelectionFilter;
-            //        var query = new FilteredElementCollector(doc)
-            //          .WhereElementIsNotElementType()
-            //          .WhereElementIsNotElementType()
-            //          .WhereElementIsViewIndependent()
-            //          .Where(x => x.IsPhysicalElement())
-            //          .Where(fi => fi.LookupParameter(propFilter.PropertyName) != null);
+                // Persist state and clients to revit file
+                request = new Request
+                {
+                    Operation = Operation.SaveClientState,
+                    Data = JsonConvert.SerializeObject(clients)
+                };
 
-            //        propFilter.PropertyValue = propFilter.PropertyValue.ToLowerInvariant();
+                response = dataPipeClient.SendRequest(request);
 
-            //        switch (propFilter.PropertyOperator)
-            //        {
-            //            case "equals":
-            //                query = query.Where(fi => GetStringValue(fi.LookupParameter(propFilter.PropertyName)) == propFilter.PropertyValue);
-            //                break;
-            //            case "contains":
-            //                query = query.Where(fi => GetStringValue(fi.LookupParameter(propFilter.PropertyName)).Contains(propFilter.PropertyValue));
-            //                break;
-            //            case "is greater than":
-            //                query = query.Where(fi => UnitUtils.ConvertFromInternalUnits(
-            //                  fi.LookupParameter(propFilter.PropertyName).AsDouble(),
-            //                  fi.LookupParameter(propFilter.PropertyName).DisplayUnitType) > double.Parse(propFilter.PropertyValue));
-            //                break;
-            //            case "is less than":
-            //                query = query.Where(fi => UnitUtils.ConvertFromInternalUnits(
-            //                 fi.LookupParameter(propFilter.PropertyName).AsDouble(),
-            //                 fi.LookupParameter(propFilter.PropertyName).DisplayUnitType) < double.Parse(propFilter.PropertyValue));
-            //                break;
-            //            default:
-            //                break;
-            //        }
+                request = new Request
+                {
+                    Operation = Operation.SaveStreamState,
+                    Data = JsonConvert.SerializeObject(speckleStreams)
+                };
 
-            //        selectionIds = query.Select(x => x.UniqueId).ToList();
+                response = dataPipeClient.SendRequest(request);
 
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        Console.WriteLine(e);
-            //    }
-            //}
+                var plural = objects.Count() == 1 ? "" : "s";
+                if (objects.Count() != 0)
+                    NotifyUi("update-client", JsonConvert.SerializeObject(new
+                    {
+                        _id = clientId,
+                        expired = true,
+                        objects = myClient.objects,
+                        //message = $"You have added {objects.Count()} object{plural} to this sender."
+                    }));
+            }
+            catch
+            {
 
-            //// LOCAL STATE management
-            //objects = selectionIds.Select(id =>
-            //{
-            //    var temp = new SpeckleObject();
-            //    temp.Properties["revitUniqueId"] = id;
-            //    temp.Properties["__type"] = "Sent Object";
-            //    return temp;
-            //});
-
-
-            //var myStream = LocalState.FirstOrDefault(st => st.StreamId == streamId);
-
-            //myStream.Objects.Clear();
-            //myStream.Objects.AddRange(objects);
-
-            //var myClient = ClientListWrapper.clients.FirstOrDefault(cl => (string)cl._id == (string)clientId);
-            //myClient.objects = JsonConvert.DeserializeObject<dynamic>(JsonConvert.SerializeObject(myStream.Objects));
-
-            //// Persist state and clients to revit file
-            //Queue.Add(new Action(() =>
-            //{
-            //    using (Transaction t = new Transaction(CurrentDoc.Document, "Update local storage"))
-            //    {
-            //        t.Start();
-            //        SpeckleStateManager.WriteState(CurrentDoc.Document, LocalState);
-            //        SpeckleClientsStorageManager.WriteClients(CurrentDoc.Document, ClientListWrapper);
-            //        t.Commit();
-            //    }
-            //}));
-            //Executor.Raise();
-            //var plural = objects.Count() == 1 ? "" : "s";
-            //if (objects.Count() != 0)
-            //    NotifyUi("update-client", JsonConvert.SerializeObject(new
-            //    {
-            //        _id = clientId,
-            //        expired = true,
-            //        objects = myClient.objects,
-            //        //message = $"You have added {objects.Count()} object{plural} to this sender."
-            //    }));
+            }
 
             return objects;
         }

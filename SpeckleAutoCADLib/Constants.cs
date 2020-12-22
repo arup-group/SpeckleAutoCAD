@@ -28,13 +28,20 @@ namespace SpeckleAutoCAD
         LoadStreamState,
         SaveStreamState,
         LoadClientState,
-        SaveClientState
+        SaveClientState,
+        GetObject,
+        GetAllLines,
+        GetAllLineIds,
 
     }
 
     public static class Constants 
     {
         public const string SpeckleAutoCADStreamsKey = "SpeckleAutoCADStreams";
+        public const string SpeckleAutoCADClientsKey = "SpeckleAutoCADClients";
+        public const string Arc = "Arc";
+        public const string Line = "Line";
+        public const string Polyline = "Polyline";
     }
     
 }
