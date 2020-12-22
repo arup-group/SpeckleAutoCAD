@@ -151,10 +151,10 @@ namespace SpeckleAutoCADApp.UI
             };
         }
 
-        public override void PushSender(string args)
-        {
+        //public override void PushSender(string args)
+        //{
             
-        }
+        //}
 
         public override void RemoveClient(string args)
         {

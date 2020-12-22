@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace SpeckleAutoCAD.DTO
 {
-    public class LineDTO
+    public class DTO
     {
-        public List<double> Value { get; set; }
+        public string ObjectType { get; set; }
+        public string Data { get; set; }
     }
 }

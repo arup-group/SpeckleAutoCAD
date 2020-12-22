@@ -41,6 +41,7 @@ namespace SpeckleAutoCAD
         public const string SpeckleAutoCADClientsKey = "SpeckleAutoCADClients";
         public const string Arc = "Arc";
         public const string Line = "Line";
+        public const string None = "None";
         public const string Polyline = "Polyline";
     }
     

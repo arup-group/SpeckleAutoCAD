@@ -9,6 +9,7 @@ using Autodesk.Civil.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using System.Linq;
 using Autodesk.AutoCAD.Runtime;
+using SpeckleAutoCAD;
 
 namespace SpeckleAutoCAD
 {
@@ -45,6 +46,15 @@ namespace SpeckleAutoCAD
                         pr.ReportProgress(() =>
                         {
                             response.Data = GetLineIdsAsJSON();
+                        });
+
+                        response.StatusCode = 200;
+                        break;
+                    case Operation.GetObject:
+                        response.Operation = request.Operation;
+                        pr.ReportProgress(() =>
+                        {
+                            response.Data = GetObjectAsJSON(Convert.ToInt64(request.Data));
                         });
 
                         response.StatusCode = 200;
@@ -182,6 +192,48 @@ namespace SpeckleAutoCAD
             return JsonConvert.SerializeObject(lineList);
         }
 
+        private string GetObjectAsJSON(long longHandle)
+        {
+            var dto = new SpeckleAutoCAD.DTO.DTO();
+            var db = document.Database;
+            Handle handle = new Handle(longHandle);
+            ObjectId objectId = db.GetObjectId(false, handle, 0);
+
+            using (var tr = db.TransactionManager.StartTransaction())
+            {
+                using (DBObject obj = tr.GetObject(objectId, OpenMode.ForRead))
+                {
+                    if (objectId.ObjectClass.IsDerivedFrom(RXClass.GetClass(typeof(Line))))
+                    {
+                        var acadLine = obj as Line;
+                        var o = new
+                        {
+                            Value = new List<double>
+                                {
+                                    acadLine.StartPoint.X,
+                                    acadLine.StartPoint.Y,
+                                    acadLine.StartPoint.Z,
+                                    acadLine.EndPoint.X,
+                                    acadLine.EndPoint.Y,
+                                    acadLine.EndPoint.Z
+                                }
+                        };
+
+                        dto.ObjectType = Constants.Line;
+                        dto.Data = JsonConvert.SerializeObject(o);
+                    }
+                    else
+                    {
+                        dto.ObjectType = Constants.None;
+                        dto.Data = string.Empty;
+                    }
+                }
+
+                tr.Commit();
+            }
+
+            return JsonConvert.SerializeObject(dto);
+        }
 
         private ProgressReporter pr;
         private Document document;

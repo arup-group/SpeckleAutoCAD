@@ -24,6 +24,7 @@ namespace SpeckleAutoCADApp
             if (e.Args.Length == 2)
             {
                 dataPipeClient = new DataPipeClient(e.Args[0], e.Args[1]);
+                AutocadDataService.DataPipeClient = dataPipeClient;
                 bindings = new SpeckleUIBindingsAutoCAD(dataPipeClient);
                 //bindings = new SpeckleUIBindingsAutoCAD(null);
             }
