@@ -69,32 +69,9 @@ namespace SpeckleAutoCADApp.UI
         {
             try
             {
-                clients = new List<dynamic>();
-                speckleStreams = new List<SpeckleStream>();
-
-                if (dataPipeClient != null)
-                {
-                    var request = new Request
-                    {
-                        Operation = Operation.LoadClientState,
-                        Data = string.Empty
-                    };
-
-                    var response = dataPipeClient.SendRequest(request);
-                    if (!string.IsNullOrEmpty(response.Data))
-                    {
-                        clients = JsonConvert.DeserializeObject<List<dynamic>>(response.Data);
-                        return response.Data;
-                    }
-                    else
-                    {
-                        return JsonConvert.SerializeObject(clients);
-                    }
-                }
-                else
-                {
-                    return JsonConvert.SerializeObject(clients);
-                }                
+                clients = AutocadDataService.GetClients();
+                speckleStreams = AutocadDataService.GetStreams();
+                return JsonConvert.SerializeObject(clients);
             }
             catch
             {

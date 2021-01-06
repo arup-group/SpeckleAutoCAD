@@ -11,4 +11,9 @@ namespace SpeckleAutoCAD.DTO
         public string ObjectType { get; set; }
         public string Data { get; set; }
     }
+
+    public class AcadLine
+    {
+        public List<double> Coordinates { get; set; }
+    }
 }

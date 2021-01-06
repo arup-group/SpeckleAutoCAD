@@ -82,7 +82,7 @@ namespace SpeckleAutoCADApp.UI
 
                 try
                 {
-                    handle = Convert.ToInt64((string)obj.Properties["autocadhandle"]);
+                    handle = (long)obj.Properties["autocadhandle"];
                     speckleObject = AutocadDataService.GetObject(handle);
                     if (speckleObject == null)
                     {
@@ -210,13 +210,13 @@ namespace SpeckleAutoCADApp.UI
 
             try
             {
-                if (dataPipeClient != null) return objects;
+                if (dataPipeClient == null) return objects;
 
                 if (filter.Name == "Selection")
                 {
 
                 }
-                else if (filter.Name == "Category")
+                else if (filter.Name == "Object Type")
                 {
                     var catFilter = filter as ListSelectionFilter;
                     foreach (var cat in catFilter.Selection)
