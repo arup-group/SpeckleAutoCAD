@@ -1,4 +1,4 @@
 [submodule "SpeckleUi"]
 	path = SpeckleUi
-	url = https://github.com/speckleworks/SpeckleUi.git
+	url = https://github.com/arup-group/SpeckleUi.git
 	branch = master
