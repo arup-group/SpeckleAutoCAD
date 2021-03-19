@@ -32,6 +32,7 @@ namespace SpeckleAutoCAD
         GetObject,
         GetAllLines,
         GetAllLineIds,
+        GetAllArcIds
 
     }
 

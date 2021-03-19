@@ -1,4 +1,5 @@
 [submodule "SpeckleUi"]
 	path = SpeckleUi
 	url = https://github.com/arup-group/SpeckleUi.git
+	ignore = dirty
 	branch = master

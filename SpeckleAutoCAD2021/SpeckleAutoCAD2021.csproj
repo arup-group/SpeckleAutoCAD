@@ -114,6 +114,9 @@
       <HintPath>..\Reference\AutoCAD\2021\AeccDbMgd.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="AecPropDataMgd">
+      <HintPath>..\..\..\..\Program Files\Autodesk\AutoCAD 2021\ACA\AecPropDataMgd.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -134,11 +137,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UI\SpeckleAutoCADWindow.xaml.cs">
-      <DependentUpon>SpeckleAutoCADWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="UI\SpeckleUiBindings.cs" />
-    <Compile Include="UI\SpeckleAutoCADAppWindowHost.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SpeckleAutoCADApp\SpeckleAutoCADApp.csproj">
@@ -160,12 +158,6 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Page Include="UI\SpeckleAutoCADWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
   <Import Project="..\Shared\Shared.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

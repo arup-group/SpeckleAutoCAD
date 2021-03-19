@@ -3,7 +3,7 @@ using Autodesk.AutoCAD.Runtime;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil.ApplicationServices;
-using SpeckleAutoCAD.UI;
+//using SpeckleAutoCAD.UI;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -16,9 +16,9 @@ namespace SpeckleAutoCAD
     {
         private static bool launched = false;
         private static int launchingCount = 0;
-        private static SpeckleAutoCADWindow speckleAutoCADWindow;
+        //private static SpeckleAutoCADWindow speckleAutoCADWindow;
         private static Process speckleAutoCADAppProcess;
-        private static SpeckleAutoCADAppWindowHost speckleAutoCADAppWindowHost;
+        //private static SpeckleAutoCADAppWindowHost speckleAutoCADAppWindowHost;
         private static Thread pipeServerThread;
         private static EventWaitHandle ewh;
         private static string eventWaitName;

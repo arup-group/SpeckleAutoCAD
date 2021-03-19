@@ -31,8 +31,12 @@ namespace SpeckleAutoCADApp
             switch (dto.ObjectType)
             {
                 case Constants.Line:
-                    var line = JsonConvert.DeserializeObject<AcadLine>(dto.Data);
+                    var line = JsonConvert.DeserializeObject<LinePayload>(dto.Data);
                     return new SpeckleLine(line.Coordinates);
+                case Constants.Arc:
+                    var dtoArc = JsonConvert.DeserializeObject<ArcPayload>(dto.Data);
+                    var arc = new SpeckleArc();
+                    return arc;
                 default:
                     return new SpeckleObject();
             }

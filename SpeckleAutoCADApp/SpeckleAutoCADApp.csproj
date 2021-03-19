@@ -180,6 +180,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="AutocadDataService.cs" />
+    <Compile Include="PayloadConverter.cs" />
     <Compile Include="Sender.cs" />
     <Compile Include="SpeckleUiBindings.cs" />
   </ItemGroup>
@@ -200,6 +201,7 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">

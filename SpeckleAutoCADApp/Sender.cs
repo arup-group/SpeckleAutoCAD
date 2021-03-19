@@ -236,6 +236,19 @@ namespace SpeckleAutoCADApp.UI
                                     selectionIds.AddRange(JsonConvert.DeserializeObject<List<long>>(response.Data));
                                 }
                                 break;
+                            case Constants.Arc:
+                                request = new Request
+                                {
+                                    Operation = Operation.GetAllArcIds,
+                                    Data = string.Empty
+                                };
+
+                                response = dataPipeClient.SendRequest(request);
+                                if (!string.IsNullOrEmpty(response.Data))
+                                {
+                                    selectionIds.AddRange(JsonConvert.DeserializeObject<List<long>>(response.Data));
+                                }
+                                break;
                         }
                     }
                 }

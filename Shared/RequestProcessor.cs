@@ -10,6 +10,7 @@ using Autodesk.AutoCAD.DatabaseServices;
 using System.Linq;
 using Autodesk.AutoCAD.Runtime;
 using SpeckleAutoCAD;
+using Autodesk.Aec.PropertyData.DatabaseServices;
 
 namespace SpeckleAutoCAD
 {
@@ -45,6 +46,15 @@ namespace SpeckleAutoCAD
                         pr.ReportProgress(() =>
                         {
                             response.Data = GetLineIdsAsJSON();
+                        });
+
+                        response.StatusCode = 200;
+                        break;
+                    case Operation.GetAllArcIds:
+                        response.Operation = request.Operation;
+                        pr.ReportProgress(() =>
+                        {
+                            response.Data = GetArcIdsAsJSON();
                         });
 
                         response.StatusCode = 200;
@@ -154,6 +164,33 @@ namespace SpeckleAutoCAD
             return JsonConvert.SerializeObject(lineList);
         }
 
+        private string GetArcIdsAsJSON()
+        {
+            var arcList = new List<long>();
+            RXClass rxClass = RXClass.GetClass(typeof(Arc));
+            var db = CurrentDocument.Database;
+            using (var tr = db.TransactionManager.StartTransaction())
+            {
+                var btr = (BlockTableRecord)tr.GetObject(SymbolUtilityServices.GetBlockModelSpaceId(db), OpenMode.ForRead);
+                var arcIds =
+                    from ObjectId id in btr
+                    where id.ObjectClass.IsDerivedFrom(rxClass)
+                    select id;
+
+                foreach (var id in arcIds)
+                {
+                    using (var arc = (Arc)tr.GetObject(id, OpenMode.ForRead))
+                    {
+                        arcList.Add(arc.Handle.Value);
+                    }
+                }
+
+                tr.Commit();
+            }
+
+            return JsonConvert.SerializeObject(arcList);
+        }
+
         private string GetLinesAsString()
         {
             var lineList = new List<List<double>>();
@@ -191,9 +228,44 @@ namespace SpeckleAutoCAD
             return JsonConvert.SerializeObject(lineList);
         }
 
-        private string GetObjectAsJSON(long longHandle)
+        private DTO.DTO GetLineDTO(DBObject obj)
         {
             var dto = new SpeckleAutoCAD.DTO.DTO();
+            var line = obj as Line;
+            var o = new DTO.LinePayload
+            {
+                Coordinates = new List<double>
+                            {
+                                line.StartPoint.X,
+                                line.StartPoint.Y,
+                                line.StartPoint.Z,
+                                line.EndPoint.X,
+                                line.EndPoint.Y,
+                                line.EndPoint.Z
+                             }
+            };
+
+            o.PropertySets = GetPropertySets(line);
+            dto.ObjectType = Constants.Line;
+            dto.Data = JsonConvert.SerializeObject(o);
+
+            return dto;
+        }
+
+        private DTO.DTO GetArcDTO(DBObject obj)
+        {
+            var dto = new SpeckleAutoCAD.DTO.DTO();
+            var arc = obj as Arc;
+            var arcPayload = arc.ToArcPayload();
+            arcPayload.PropertySets = GetPropertySets(arc);
+            dto.ObjectType = Constants.Arc;
+            dto.Data = JsonConvert.SerializeObject(arcPayload);
+            return dto;
+        }
+
+        private string GetObjectAsJSON(long longHandle)
+        {
+            SpeckleAutoCAD.DTO.DTO dto;
             var db = CurrentDocument.Database;
             Handle handle = new Handle(longHandle);
             ObjectId objectId = db.GetObjectId(false, handle, 0);
@@ -204,34 +276,49 @@ namespace SpeckleAutoCAD
                 {
                     if (objectId.ObjectClass.IsDerivedFrom(RXClass.GetClass(typeof(Line))))
                     {
-                        var line = obj as Line;
-                        var o = new DTO.AcadLine
-                        {
-                            Coordinates = new List<double>
-                            {
-                                line.StartPoint.X,
-                                line.StartPoint.Y,
-                                line.StartPoint.Z,
-                                line.EndPoint.X,
-                                line.EndPoint.Y,
-                                line.EndPoint.Z
-                             }
-                        };
-
-                        dto.ObjectType = Constants.Line;
-                        dto.Data = JsonConvert.SerializeObject(o);
+                        dto = GetLineDTO(obj);
+                    }
+                    else if (objectId.ObjectClass.IsDerivedFrom(RXClass.GetClass(typeof(Arc))))
+                    {
+                        dto = GetArcDTO(obj);
                     }
                     else
                     {
+                        dto = new DTO.DTO();
                         dto.ObjectType = Constants.None;
                         dto.Data = string.Empty;
                     }
+                    
                 }
 
                 tr.Commit();
             }
 
             return JsonConvert.SerializeObject(dto);
+        }
+
+        private Dictionary<string, Dictionary<string, object>> GetPropertySets(DBObject o)
+        {
+            var propertySetsDTO = new Dictionary<string, Dictionary<string, object>>();
+            var propertySetIds = PropertyDataServices.GetPropertySets(o);
+
+            foreach (ObjectId propertySetId in propertySetIds)
+            {
+                using (Transaction transProp = HostApplicationServices.WorkingDatabase.TransactionManager.StartTransaction())
+                {
+                    using (PropertySet propertySet = transProp.GetObject(propertySetId, OpenMode.ForWrite) as PropertySet)
+                    {
+                        var propertySetDTO = new Dictionary<string, object>();
+                        propertySetsDTO.Add(propertySet.PropertySetDefinitionName, propertySetDTO);
+                        foreach (PropertySetData propertySetData in propertySet.PropertySetData)
+                        {
+                            propertySetDTO.Add(propertySet.PropertyIdToName(propertySetData.Id), propertySetData.GetData());
+                        }
+                    }
+                }
+            }
+
+            return propertySetsDTO;
         }
 
         private ProgressReporter pr;
