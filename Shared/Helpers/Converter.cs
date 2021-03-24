@@ -10,7 +10,7 @@ namespace SpeckleAutoCAD.Helpers
     {
         public static DTO.ArcPayload ToArcPayload(this Arc arc)
         {
-            var plane = new Plane(arc.Center, arc.Normal);
+            var plane = arc.GetPlane();
             var coordinateSystem = plane.GetCoordinateSystem();
 
             var normalPayload = new DTO.VectorPayload

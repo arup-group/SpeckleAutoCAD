@@ -19,22 +19,12 @@ namespace SpeckleAutoCADApp.UI
             
         }
 
-        public override void AddReceiver(string args)
-        {
-            
-        }
 
         public override void AddSelectionToSender(string args)
         {
             
         }
 
-
-
-        public override void BakeReceiver(string args)
-        {
-            
-        }
 
         public override string GetApplicationHostName()
         {
