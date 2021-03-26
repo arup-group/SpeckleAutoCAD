@@ -59,6 +59,15 @@ namespace SpeckleAutoCAD
 
                         response.StatusCode = 200;
                         break;
+                    case Operation.GetAllPolylineIds:
+                        response.Operation = request.Operation;
+                        pr.ReportProgress(() =>
+                        {
+                            response.Data = GetPolylineIdsAsJSON();
+                        });
+
+                        response.StatusCode = 200;
+                        break;
                     case Operation.GetObject:
                         response.Operation = request.Operation;
                         pr.ReportProgress(() =>
@@ -191,6 +200,33 @@ namespace SpeckleAutoCAD
             return JsonConvert.SerializeObject(arcList);
         }
 
+        private string GetPolylineIdsAsJSON()
+        {
+            var pList = new List<long>();
+            RXClass rxClass = RXClass.GetClass(typeof(Polyline));
+            var db = CurrentDocument.Database;
+            using (var tr = db.TransactionManager.StartTransaction())
+            {
+                var btr = (BlockTableRecord)tr.GetObject(SymbolUtilityServices.GetBlockModelSpaceId(db), OpenMode.ForRead);
+                var ids =
+                    from ObjectId id in btr
+                    where id.ObjectClass.IsDerivedFrom(rxClass)
+                    select id;
+
+                foreach (var id in ids)
+                {
+                    using (var pLine = (Polyline)tr.GetObject(id, OpenMode.ForRead))
+                    {
+                        pList.Add(pLine.Handle.Value);
+                    }
+                }
+
+                tr.Commit();
+            }
+
+            return JsonConvert.SerializeObject(pList);
+        }
+
         private string GetLinesAsString()
         {
             var lineList = new List<List<double>>();
@@ -232,19 +268,7 @@ namespace SpeckleAutoCAD
         {
             var dto = new SpeckleAutoCAD.DTO.DTO();
             var line = obj as Line;
-            var o = new DTO.LinePayload
-            {
-                Coordinates = new List<double>
-                            {
-                                line.StartPoint.X,
-                                line.StartPoint.Y,
-                                line.StartPoint.Z,
-                                line.EndPoint.X,
-                                line.EndPoint.Y,
-                                line.EndPoint.Z
-                             }
-            };
-
+            var o = line.ToLinePayload();
             o.PropertySets = GetPropertySets(line);
             dto.ObjectType = Constants.Line;
             dto.Data = JsonConvert.SerializeObject(o);
@@ -260,6 +284,17 @@ namespace SpeckleAutoCAD
             arcPayload.PropertySets = GetPropertySets(arc);
             dto.ObjectType = Constants.Arc;
             dto.Data = JsonConvert.SerializeObject(arcPayload);
+            return dto;
+        }
+
+        private DTO.DTO GetPolylineDTO(DBObject obj)
+        {
+            var dto = new SpeckleAutoCAD.DTO.DTO();
+            var pline = obj as Polyline;
+            var payload = pline.ToPolylinePayload();
+            payload.PropertySets = GetPropertySets(pline);
+            dto.ObjectType = Constants.Polyline;
+            dto.Data = JsonConvert.SerializeObject(payload);
             return dto;
         }
 
@@ -281,6 +316,10 @@ namespace SpeckleAutoCAD
                     else if (objectId.ObjectClass.IsDerivedFrom(RXClass.GetClass(typeof(Arc))))
                     {
                         dto = GetArcDTO(obj);
+                    }
+                    else if (objectId.ObjectClass.IsDerivedFrom(RXClass.GetClass(typeof(Polyline))))
+                    {
+                        dto = GetPolylineDTO(obj);
                     }
                     else
                     {

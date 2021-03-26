@@ -3,11 +3,48 @@ using System.Collections.Generic;
 using System.Text;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
+using Newtonsoft.Json;
 
 namespace SpeckleAutoCAD.Helpers
 {
     public static class Converter
     {
+        public static DTO.LinePayload ToLinePayload(this Line line)
+        {
+            var o = new DTO.LinePayload
+            {
+                Coordinates = new List<double>
+                            {
+                                line.StartPoint.X,
+                                line.StartPoint.Y,
+                                line.StartPoint.Z,
+                                line.EndPoint.X,
+                                line.EndPoint.Y,
+                                line.EndPoint.Z
+                             }
+            };
+
+            return o;
+        }
+
+        public static DTO.LinePayload ToLineSegmentPayload(this LineSegment3d line)
+        {
+            var o = new DTO.LinePayload
+            {
+                Coordinates = new List<double>
+                            {
+                                line.StartPoint.X,
+                                line.StartPoint.Y,
+                                line.StartPoint.Z,
+                                line.EndPoint.X,
+                                line.EndPoint.Y,
+                                line.EndPoint.Z
+                             }
+            };
+
+            return o;
+        }
+
         public static DTO.ArcPayload ToArcPayload(this Arc arc)
         {
             //Choose the x-axis such that it lies along the line connecting the center of the arc to it's  start point (A).
@@ -62,6 +99,41 @@ namespace SpeckleAutoCAD.Helpers
             var z = Math.Abs(n.Z) < Tolerance.Global.EqualVector ? 0d : n.Z;
 
             return new Vector3d(x, y, z);
+        }
+
+        public static DTO.PolylinePayload ToPolylinePayload(this Polyline polyline)
+        {
+            DTO.Segment segment;
+            var polylinePayload = new DTO.PolylinePayload();
+            polylinePayload.Closed = polyline.Closed;
+            polylinePayload.Segments = new List<DTO.Segment>();
+            
+            for (int i = 0; i < polyline.NumberOfVertices; i++)
+            {
+                var segmentType = polyline.GetSegmentType(i);
+                if (segmentType == Autodesk.AutoCAD.DatabaseServices.SegmentType.Arc)
+                {
+                    segment = new DTO.Segment();
+                    segment.SegmentType = SegmentType.Arc;
+                    var arc = polyline.GetArcSegmentAt(i);
+                    segment.Data = string.Empty;
+                    polylinePayload.Segments.Add(segment);
+                }
+                else if (segmentType == Autodesk.AutoCAD.DatabaseServices.SegmentType.Line)
+                {
+                    segment = new DTO.Segment();
+                    segment.SegmentType = SegmentType.Line;
+                    var line = polyline.GetLineSegmentAt(i);
+                    segment.Data = JsonConvert.SerializeObject(line);
+                    polylinePayload.Segments.Add(segment);
+                }
+                else
+                {
+
+                }
+            }
+
+            return polylinePayload;
         }
     }
 }

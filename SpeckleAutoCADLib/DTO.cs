@@ -48,4 +48,18 @@ namespace SpeckleAutoCAD.DTO
         public VectorPayload XDir { get; set; }
         public VectorPayload YDir { get; set; }
     }
+
+    public class Segment
+    {
+        public SegmentType SegmentType { get; set; }
+        public string Data { get; set; }
+    }
+
+    public class PolylinePayload : Payload
+    {
+        public bool Closed { get; set; }
+        public List<Segment> Segments { get; set; }
+
+
+    }
 }

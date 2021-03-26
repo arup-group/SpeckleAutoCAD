@@ -32,7 +32,8 @@ namespace SpeckleAutoCAD
         GetObject,
         GetAllLines,
         GetAllLineIds,
-        GetAllArcIds
+        GetAllArcIds,
+        GetAllPolylineIds
 
     }
 
@@ -45,5 +46,13 @@ namespace SpeckleAutoCAD
         public const string None = "None";
         public const string Polyline = "Polyline";
     }
-    
+
+    public enum SegmentType
+    {
+        Line = 0,
+        Arc = 1,
+        Coincident = 2,
+        Point = 3,
+        Empty = 4
+    }
 }
