@@ -114,8 +114,10 @@
       <HintPath>..\Reference\AutoCAD\2020\AeccDbMgd.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="AecPropDataMgd">
-      <HintPath>..\..\..\..\Program Files\Autodesk\AutoCAD 2020\ACA\AecPropDataMgd.dll</HintPath>
+    <Reference Include="AecPropDataMgd, Version=8.2.47.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Reference\AutoCAD\2020\AecPropDataMgd.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Countly, Version=19.8.0.0, Culture=neutral, PublicKeyToken=30fd2b3d8bfe4882, processorArchitecture=MSIL">
       <HintPath>..\packages\Countly.19.8.0\lib\net40-client\Countly.dll</HintPath>

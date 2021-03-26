@@ -114,8 +114,10 @@
       <HintPath>..\Reference\AutoCAD\2021\AeccDbMgd.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="AecPropDataMgd">
-      <HintPath>..\..\..\..\Program Files\Autodesk\AutoCAD 2021\ACA\AecPropDataMgd.dll</HintPath>
+    <Reference Include="AecPropDataMgd, Version=8.3.53.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Reference\AutoCAD\2021\AecPropDataMgd.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
