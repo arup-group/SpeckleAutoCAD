@@ -27,7 +27,7 @@ namespace SpeckleAutoCAD.Helpers
             return o;
         }
 
-        public static DTO.LinePayload ToLineSegmentPayload(this LineSegment3d line)
+        public static DTO.LinePayload ToLinePayload(this LineSegment3d line)
         {
             var o = new DTO.LinePayload
             {
@@ -116,7 +116,7 @@ namespace SpeckleAutoCAD.Helpers
                     segment = new DTO.Segment();
                     segment.SegmentType = SegmentType.Arc;
                     var arc = polyline.GetArcSegmentAt(i);
-                    segment.Data = string.Empty;
+                    segment.Data = JsonConvert.SerializeObject(arc.ToArcPayload());
                     polylinePayload.Segments.Add(segment);
                 }
                 else if (segmentType == Autodesk.AutoCAD.DatabaseServices.SegmentType.Line)
@@ -124,16 +124,77 @@ namespace SpeckleAutoCAD.Helpers
                     segment = new DTO.Segment();
                     segment.SegmentType = SegmentType.Line;
                     var line = polyline.GetLineSegmentAt(i);
-                    segment.Data = JsonConvert.SerializeObject(line);
+                    segment.Data = JsonConvert.SerializeObject(line.ToLinePayload());
                     polylinePayload.Segments.Add(segment);
-                }
-                else
-                {
-
                 }
             }
 
             return polylinePayload;
+        }
+
+        public static DTO.ArcPayload ToArcPayload(this CircularArc3d arc)
+        {
+            //Choose the x-axis such that it lies along the line connecting the center of the arc to it's  start point (A).
+            //This way start angle is always 0 as Speckle connectors expect.
+            var startPoint = ToWCS(arc.StartPoint, arc.Normal);
+            var center = ToWCS(arc.Center, arc.Normal);
+            var xAxis = Normalize(center.GetVectorTo(startPoint));
+
+            //Rotate point A by 90 degrees about z to get a point on the y-axis
+            var pointB = startPoint.RotateBy(90 * System.Math.PI / 180, arc.Normal, center);
+            var yAxis = Normalize(center.GetVectorTo(pointB));
+
+            var arcNormal = Normalize(arc.Normal);
+            var normalPayload = new DTO.VectorPayload
+            {
+                Value = new List<double> { arcNormal.X, arcNormal.Y, arcNormal.Z }
+            };
+
+            var planePayload = new DTO.PlanePayload
+            {
+                Normal = normalPayload,
+                Origin = new DTO.PointPayload
+                {
+                    Value = new List<double> { center.X, center.Y, center.Z }
+                },
+                XDir = new DTO.VectorPayload
+                {
+                    Value = new List<double> { xAxis.X, xAxis.Y, xAxis.Z }
+                },
+                YDir = new DTO.VectorPayload
+                {
+                    Value = new List<double> { yAxis.X, yAxis.Y, yAxis.Z }
+                },
+            };
+
+            var sweep = GetSweep(arc.StartAngle, arc.EndAngle);
+            var arcPayload = new DTO.ArcPayload()
+            {
+                Plane = planePayload,
+                Radius = arc.Radius,
+                StartAngle = 0,
+                EndAngle = sweep, //EndAngle is also the sweep because start angle is always 0
+                AngleRadians = sweep              
+            };
+
+            return arcPayload;
+        }
+
+        private static double GetSweep(double startAngle, double endAngle)
+        {
+            var sweep = endAngle - startAngle;
+            if (sweep < 0)
+            {
+                sweep += 2 * Math.PI;
+            }
+
+            return sweep;
+        }
+
+        private static Point3d ToWCS(Point3d pt, Vector3d normal)
+        {
+            var transform = Matrix3d.WorldToPlane(normal);
+            return pt.TransformBy(transform);
         }
     }
 }
