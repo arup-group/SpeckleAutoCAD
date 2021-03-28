@@ -32,11 +32,15 @@ namespace SpeckleAutoCADApp
             {
                 case Constants.Line:
                     var linePayload = JsonConvert.DeserializeObject<LinePayload>(dto.Data);
-                    return new SpeckleLine(linePayload.Coordinates);
+                    return linePayload.ToSpeckleLine();
                 case Constants.Arc:
                     var arcPayload = JsonConvert.DeserializeObject<ArcPayload>(dto.Data);
                     var arc = arcPayload.ToSpeckleArc();
                     return arc;
+                case Constants.Polyline:
+                    var polycurvePayload = JsonConvert.DeserializeObject<PolycurvePayload>(dto.Data);
+                    var polycurve = polycurvePayload.ToSpecklePolycurve();
+                    return polycurve;
                 default:
                     return new SpeckleObject();
             }

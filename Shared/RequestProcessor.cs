@@ -291,7 +291,7 @@ namespace SpeckleAutoCAD
         {
             var dto = new SpeckleAutoCAD.DTO.DTO();
             var pline = obj as Polyline;
-            var payload = pline.ToPolylinePayload();
+            var payload = pline.ToPolycurvePayload();
             payload.PropertySets = GetPropertySets(pline);
             dto.ObjectType = Constants.Polyline;
             dto.Data = JsonConvert.SerializeObject(payload);

@@ -13,6 +13,12 @@ namespace SpeckleAutoCADApp
 {
     public static class PayloadConverter
     {
+        public static SpeckleLine ToSpeckleLine(this LinePayload payload)
+        {
+            var line = new SpeckleLine(payload.Coordinates);
+            return line;
+        }
+
         public static SpeckleArc ToSpeckleArc(this ArcPayload payload)
         {
             var arc = new SpeckleArc(
@@ -48,6 +54,29 @@ namespace SpeckleAutoCADApp
             {
                 Value = payload.Value
             };
+        }
+
+        public static SpecklePolycurve ToSpecklePolycurve(this PolycurvePayload payload)
+        {
+            var polycurve = new SpecklePolycurve();
+            polycurve.Closed = payload.Closed;
+            polycurve.Segments = new List<SpeckleObject>();
+
+            foreach (var segment in payload.Segments)
+            {
+                if (segment.SegmentType == SegmentType.Arc)
+                {
+                    var arcPayload = JsonConvert.DeserializeObject<ArcPayload>(segment.Data);
+                    polycurve.Segments.Add(arcPayload.ToSpeckleArc());
+                }
+                else if (segment.SegmentType == SegmentType.Line)
+                {
+                    var linePayload = JsonConvert.DeserializeObject<LinePayload>(segment.Data);
+                    polycurve.Segments.Add(linePayload.ToSpeckleLine());
+                }
+            }
+
+            return polycurve;
         }
     }
 }

@@ -101,12 +101,12 @@ namespace SpeckleAutoCAD.Helpers
             return new Vector3d(x, y, z);
         }
 
-        public static DTO.PolylinePayload ToPolylinePayload(this Polyline polyline)
+        public static DTO.PolycurvePayload ToPolycurvePayload(this Polyline polyline)
         {
             DTO.Segment segment;
-            var polylinePayload = new DTO.PolylinePayload();
-            polylinePayload.Closed = polyline.Closed;
-            polylinePayload.Segments = new List<DTO.Segment>();
+            var polycurvePayload = new DTO.PolycurvePayload();
+            polycurvePayload.Closed = polyline.Closed;
+            polycurvePayload.Segments = new List<DTO.Segment>();
             
             for (int i = 0; i < polyline.NumberOfVertices; i++)
             {
@@ -117,7 +117,7 @@ namespace SpeckleAutoCAD.Helpers
                     segment.SegmentType = SegmentType.Arc;
                     var arc = polyline.GetArcSegmentAt(i);
                     segment.Data = JsonConvert.SerializeObject(arc.ToArcPayload());
-                    polylinePayload.Segments.Add(segment);
+                    polycurvePayload.Segments.Add(segment);
                 }
                 else if (segmentType == Autodesk.AutoCAD.DatabaseServices.SegmentType.Line)
                 {
@@ -125,11 +125,11 @@ namespace SpeckleAutoCAD.Helpers
                     segment.SegmentType = SegmentType.Line;
                     var line = polyline.GetLineSegmentAt(i);
                     segment.Data = JsonConvert.SerializeObject(line.ToLinePayload());
-                    polylinePayload.Segments.Add(segment);
+                    polycurvePayload.Segments.Add(segment);
                 }
             }
 
-            return polylinePayload;
+            return polycurvePayload;
         }
 
         public static DTO.ArcPayload ToArcPayload(this CircularArc3d arc)

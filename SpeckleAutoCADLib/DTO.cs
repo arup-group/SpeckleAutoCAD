@@ -55,7 +55,7 @@ namespace SpeckleAutoCAD.DTO
         public string Data { get; set; }
     }
 
-    public class PolylinePayload : Payload
+    public class PolycurvePayload : Payload
     {
         public bool Closed { get; set; }
         public List<Segment> Segments { get; set; }
