@@ -42,7 +42,7 @@ jobs:
         echo "::set-output name=pfxPath::$certificatePath"
 
     - name: Create installer
-      run: iscc /dAppVersion="1.0.0-alpha+38357" "/Ssigntool=C:\Program Files (x86)\Windows Kits\10\bin\10.0.17763.0\x86\signtool.exe sign /f ""${{ steps.decodePfxCert.outputs.pfxPath }}"" /p ""${{ secrets.PFX_CERT_PASSWORD }}"" /t http://timestamp.comodoca.com $f" Installer/InstallerScript.iss
+      run: iscc /dAppVersion="1.0.0-alpha+38358" "/Ssigntool=C:\Program Files (x86)\Windows Kits\10\bin\10.0.17763.0\x86\signtool.exe sign /f ""${{ steps.decodePfxCert.outputs.pfxPath }}"" /p ""${{ secrets.PFX_CERT_PASSWORD }}"" /t http://timestamp.comodoca.com $f" Installer/InstallerScript.iss
       shell: cmd
     
     - name: Remove PFX cert
@@ -51,7 +51,7 @@ jobs:
     - name: Calculate tag version
       id: calculateTagVersion
       run: |
-        $tag = "1.0.0-alpha+38357"
+        $tag = "1.0.0-alpha+38358"
         echo "::set-output name=tag::$tag"
   
     - name: Upload build files
