@@ -127,6 +127,14 @@ namespace SpeckleAutoCAD
                         });
                         response.StatusCode = 200;
                         break;
+                    case Operation.GetSelectionCount:
+                        response.Operation = request.Operation;
+                        pr.ReportProgress(() =>
+                        {
+                            response.Data = GetSelectionCountAsJSON();
+                        });
+                        response.StatusCode = 200;
+                        break;
                     default:
                         response.Data = string.Empty;
                         response.StatusCode = 400;
@@ -296,6 +304,19 @@ namespace SpeckleAutoCAD
             dto.ObjectType = Constants.Polyline;
             dto.Data = JsonConvert.SerializeObject(payload);
             return dto;
+        }
+
+        private string GetSelectionCountAsJSON()
+        {
+            int selectionCount = 0;
+            var editor = CurrentDocument.Editor;
+            var selectionResult = editor.SelectImplied();
+            if (selectionResult.Status == Autodesk.AutoCAD.EditorInput.PromptStatus.OK)
+            {
+                selectionCount = selectionResult.Value.Count;
+            }
+
+            return JsonConvert.SerializeObject(selectionCount);
         }
 
         private string GetObjectAsJSON(long longHandle)

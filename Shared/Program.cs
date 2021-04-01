@@ -16,12 +16,12 @@ namespace SpeckleAutoCAD
     {
         private static bool launched = false;
         private static int launchingCount = 0;
-        //private static SpeckleAutoCADWindow speckleAutoCADWindow;
         private static Process speckleAutoCADAppProcess;
-        //private static SpeckleAutoCADAppWindowHost speckleAutoCADAppWindowHost;
         private static Thread pipeServerThread;
-        private static EventWaitHandle ewh;
-        private static string eventWaitName;
+        private static EventWaitHandle showSpeckleUISignal;
+        private static string showSpeckleUISignalId;
+        private EventWaitHandle selectionChangedSignal;
+        private string selectionChangedSignalId;
 
         #region IExtensionApplication Members
 
@@ -57,74 +57,7 @@ namespace SpeckleAutoCAD
                     return;
                 }
 
-                if (launched == false)
-                {
-                    //var document = Application.DocumentManager.MdiActiveDocument;
-                    //var civilDocument = Autodesk.Civil.ApplicationServices.CivilApplication.ActiveDocument;
-                    var requestProcessor = new RequestProcessor();
-                    var dataPipeServer = new DataPipeServer(requestProcessor.ProcessRequest);
-                    pipeServerThread = new Thread(dataPipeServer.Run);
-                    pipeServerThread.Start();
-
-                    eventWaitName = Guid.NewGuid().ToString("N");
-                    ewh = new EventWaitHandle(false, EventResetMode.AutoReset, eventWaitName);
-                    //ObjectIdCollection alignments = doc.GetAlignmentIds();
-                    //ObjectIdCollection sites = doc.GetSiteIds();
-                    //String docInfo = String.Format("\nHello Speckle!");
-                    //Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage(docInfo);
-                    //SpeckleWindow = new SpeckleUiWindow(bindings, @"https://appui.speckle.systems/#/");
-
-                    //var helper = new System.Windows.Interop.WindowInteropHelper(SpeckleWindow);
-                    //helper.Owner = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle;
-
-                    //SpeckleWindow.Show();
-                    ProcessStartInfo psi = new ProcessStartInfo()
-                    {
-                        FileName = GetAssemblyDirectory() + "\\SpeckleAutoCADApp",
-                        Arguments = $"{dataPipeServer.ClientInputHandle} {dataPipeServer.ClientOutputHandle} {eventWaitName}",
-                        UseShellExecute = false
-                    };
-
-                    speckleAutoCADAppProcess = Process.Start(psi);
-                    WaitForAppWindow();
-                    if (speckleAutoCADAppProcess.MainWindowHandle == IntPtr.Zero)
-                    {
-                        throw new System.Exception("Unable to initialize Speckle");
-                    }
-
-                    SetWindowLongPtr(
-                        speckleAutoCADAppProcess.MainWindowHandle,
-                        -8,
-                        System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle
-                    );
-
-                    launched = true;
-                    //speckleAutoCADAppWindowHost = new SpeckleAutoCADAppWindowHost(speckleAutoCADAppProcess.MainWindowHandle);
-                    //speckleAutoCADWindow = new SpeckleAutoCADWindow(speckleAutoCADAppWindowHost);
-                    //speckleAutoCADWindow.Show();
-
-                    //string state;
-                    //var data = System.IO.File.ReadAllText(@"c:\temp\text1.txt");
-                    //Helpers.SpeckleStateManager.WriteState(document, Constants.SpeckleAutoCADStreamsKey, data);
-                    //data = Helpers.SpeckleStateManager.ReadState(document, Constants.SpeckleAutoCADStreamsKey);
-                    //System.IO.File.WriteAllText(@"c:\temp\text2.txt", data);
-
-                    //var pr = new SpeckleAutoCAD.Helpers.ProgressReporter();
-                    //System.Threading.Tasks.Task.Run(
-                    //    () =>
-                    //    {
-                    //        pr.ReportProgress(() =>
-                    //        {
-                    //            var data = System.IO.File.ReadAllText(@"c:\temp\text1.txt");
-                    //            Helpers.SpeckleStateManager.WriteState(document, Constants.SpeckleAutoCADStreamsKey, data);
-                    //        });
-                    //    });
-                }
-                else
-                {
-                    // Signal Speckle UI application to show
-                    ewh.Set();
-                }
+                LaunchUI();
 
 
             }
@@ -138,6 +71,59 @@ namespace SpeckleAutoCAD
             }
         }
 
+        private void OnImpliedSelectionChanged(object sender, EventArgs e)
+        {
+            selectionChangedSignal.Set();
+        }
+
+        //For the moment all communications are initiated by the UI so we use these signals to trigger the UI as appropriate 
+        private void CreateWaitHandles()
+        {
+            showSpeckleUISignalId = Guid.NewGuid().ToString("N");
+            showSpeckleUISignal = new EventWaitHandle(false, EventResetMode.AutoReset, showSpeckleUISignalId);
+            selectionChangedSignalId = Guid.NewGuid().ToString("N");
+            selectionChangedSignal = new EventWaitHandle(false, EventResetMode.AutoReset, selectionChangedSignalId);
+        }
+
+        private void LaunchUI()
+        {
+            if (launched == false)
+            {
+                var requestProcessor = new RequestProcessor();
+                var dataPipeServer = new DataPipeServer(requestProcessor.ProcessRequest);
+                pipeServerThread = new Thread(dataPipeServer.Run);
+                pipeServerThread.Start();
+
+                CreateWaitHandles();
+
+                ProcessStartInfo psi = new ProcessStartInfo()
+                {
+                    FileName = GetAssemblyDirectory() + "\\SpeckleAutoCADApp",
+                    Arguments = $"{dataPipeServer.ClientInputHandle} {dataPipeServer.ClientOutputHandle} {showSpeckleUISignalId} {selectionChangedSignalId}",
+                    UseShellExecute = false
+                };
+
+                speckleAutoCADAppProcess = Process.Start(psi);
+                WaitForAppWindow();
+                if (speckleAutoCADAppProcess.MainWindowHandle == IntPtr.Zero)
+                {
+                    throw new System.Exception("Unable to initialize Speckle");
+                }
+
+                SetWindowLongPtr(
+                    speckleAutoCADAppProcess.MainWindowHandle,
+                    -8,
+                    System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle
+                );
+
+                launched = true;
+            }
+            else
+            {
+                // Signal Speckle UI application to show
+                showSpeckleUISignal.Set();
+            }
+        }
         public string GetAssemblyDirectory()
         {
             string codeBase = Assembly.GetExecutingAssembly().CodeBase;
