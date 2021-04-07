@@ -129,10 +129,11 @@ namespace SpeckleAutoCAD
                         break;
                     case Operation.GetSelectionCount:
                         response.Operation = request.Operation;
-                        pr.ReportProgress(() =>
+                        pr.ReportProgressAsync(() =>
                         {
                             response.Data = GetSelectionCountAsJSON();
                         });
+
                         response.StatusCode = 200;
                         break;
                     default:
