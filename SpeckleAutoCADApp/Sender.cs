@@ -316,6 +316,40 @@ namespace SpeckleAutoCADApp.UI
             return objects;
         }
 
+        public void OnAutocadSelectionChanged()
+        {
+            Request request;
+            Response response;
+            var selectedObjectsCount = 0;
 
+            try
+            {
+                if (dataPipeClient == null)
+                {
+                    return;
+                }
+
+                request = new Request
+                {
+                    Operation = Operation.GetSelectionCount,
+                    Data = string.Empty
+                };
+
+                response = dataPipeClient.SendRequest(request);
+                if (!string.IsNullOrEmpty(response.Data))
+                {
+                    selectedObjectsCount = JsonConvert.DeserializeObject<int>(response.Data);
+                }
+
+                NotifyUi("update-selection-count", JsonConvert.SerializeObject(new
+                {
+                    selectedObjectsCount
+                }));
+            }
+            catch
+            {
+
+            }
+        }
     }
 }

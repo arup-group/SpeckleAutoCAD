@@ -33,7 +33,8 @@ namespace SpeckleAutoCAD
         GetAllLines,
         GetAllLineIds,
         GetAllArcIds,
-        GetAllPolylineIds
+        GetAllPolylineIds,
+        GetSelectionCount
 
     }
 

@@ -16,12 +16,13 @@ namespace SpeckleAutoCAD
     {
         private static bool launched = false;
         private static int launchingCount = 0;
-        //private static SpeckleAutoCADWindow speckleAutoCADWindow;
         private static Process speckleAutoCADAppProcess;
-        //private static SpeckleAutoCADAppWindowHost speckleAutoCADAppWindowHost;
         private static Thread pipeServerThread;
-        private static EventWaitHandle ewh;
-        private static string eventWaitName;
+        private static EventWaitHandle showSpeckleUISignal;
+        private static string showSpeckleUISignalId;
+        private static EventWaitHandle selectionChangedSignal;
+        private static string selectionChangedSignalId;
+        private static bool quitting;
 
         #region IExtensionApplication Members
 
@@ -29,7 +30,11 @@ namespace SpeckleAutoCAD
 
         public void Initialize()
         {
- //           throw new System.Exception("The method or operation is not implemented.");
+            Application.DocumentManager.MdiActiveDocument.ImpliedSelectionChanged += OnImpliedSelectionChanged;
+            Application.DocumentManager.MdiActiveDocument.BeginDocumentClose += OnBeginDocumentClose;
+            Application.BeginQuit += OnBeginQuit;
+            Application.QuitAborted += OnQuitAborted;
+            Application.BeginCloseAll += OnBeginCloseAll;
         }
 
         public void Terminate()
@@ -51,80 +56,58 @@ namespace SpeckleAutoCAD
         {
             try
             {
-                launchingCount += 1;
-                if (launchingCount > 1)
-                {
-                    return;
-                }
+                //launchingCount += 1;
+                //if (launchingCount > 1)
+                //{
+                //    return;
+                //}
 
-                if (launched == false)
-                {
-                    //var document = Application.DocumentManager.MdiActiveDocument;
-                    //var civilDocument = Autodesk.Civil.ApplicationServices.CivilApplication.ActiveDocument;
-                    var requestProcessor = new RequestProcessor();
-                    var dataPipeServer = new DataPipeServer(requestProcessor.ProcessRequest);
-                    pipeServerThread = new Thread(dataPipeServer.Run);
-                    pipeServerThread.Start();
+                //if (launched == false)
+                //{
+                //    var requestProcessor = new RequestProcessor();
+                //    var dataPipeServer = new DataPipeServer(requestProcessor.ProcessRequest);
+                //    pipeServerThread = new Thread(dataPipeServer.Run);
+                //    pipeServerThread.IsBackground = true;
+                //    pipeServerThread.Start();
 
-                    eventWaitName = Guid.NewGuid().ToString("N");
-                    ewh = new EventWaitHandle(false, EventResetMode.AutoReset, eventWaitName);
-                    //ObjectIdCollection alignments = doc.GetAlignmentIds();
-                    //ObjectIdCollection sites = doc.GetSiteIds();
-                    //String docInfo = String.Format("\nHello Speckle!");
-                    //Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage(docInfo);
-                    //SpeckleWindow = new SpeckleUiWindow(bindings, @"https://appui.speckle.systems/#/");
+                //    showSpeckleUISignalId = Guid.NewGuid().ToString("N");
+                //    showSpeckleUISignal = new EventWaitHandle(false, EventResetMode.AutoReset, showSpeckleUISignalId);
 
-                    //var helper = new System.Windows.Interop.WindowInteropHelper(SpeckleWindow);
-                    //helper.Owner = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle;
+                //    selectionChangedSignalId = Guid.NewGuid().ToString("N");
+                //    selectionChangedSignal = new EventWaitHandle(false, EventResetMode.AutoReset, selectionChangedSignalId);
 
-                    //SpeckleWindow.Show();
-                    ProcessStartInfo psi = new ProcessStartInfo()
-                    {
-                        FileName = GetAssemblyDirectory() + "\\SpeckleAutoCADApp",
-                        Arguments = $"{dataPipeServer.ClientInputHandle} {dataPipeServer.ClientOutputHandle} {eventWaitName}",
-                        UseShellExecute = false
-                    };
+                //    ProcessStartInfo psi = new ProcessStartInfo()
+                //    {
+                //        FileName = GetAssemblyDirectory() + "\\SpeckleAutoCADApp",
+                //        Arguments = $"{dataPipeServer.ClientInputHandle} {dataPipeServer.ClientOutputHandle} {showSpeckleUISignalId} {selectionChangedSignalId}",
+                //        UseShellExecute = false
+                //    };
 
-                    speckleAutoCADAppProcess = Process.Start(psi);
-                    WaitForAppWindow();
-                    if (speckleAutoCADAppProcess.MainWindowHandle == IntPtr.Zero)
-                    {
-                        throw new System.Exception("Unable to initialize Speckle");
-                    }
+                //    speckleAutoCADAppProcess = Process.Start(psi);
+                //    WaitForAppWindow();
+                //    if (speckleAutoCADAppProcess.MainWindowHandle == IntPtr.Zero)
+                //    {
+                //        throw new System.Exception("Unable to initialize Speckle");
+                //    }
 
-                    SetWindowLongPtr(
-                        speckleAutoCADAppProcess.MainWindowHandle,
-                        -8,
-                        System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle
-                    );
+                //    SetWindowLongPtr(
+                //        speckleAutoCADAppProcess.MainWindowHandle,
+                //        -8,
+                //        System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle
+                //    );
 
-                    launched = true;
-                    //speckleAutoCADAppWindowHost = new SpeckleAutoCADAppWindowHost(speckleAutoCADAppProcess.MainWindowHandle);
-                    //speckleAutoCADWindow = new SpeckleAutoCADWindow(speckleAutoCADAppWindowHost);
-                    //speckleAutoCADWindow.Show();
+                //    Application.DocumentManager.MdiActiveDocument.ImpliedSelectionChanged += OnImpliedSelectionChanged;
+                //    Application.DocumentManager.MdiActiveDocument.BeginDocumentClose += OnBeginDocumentClose;
+                //    Application.BeginQuit += OnBeginQuit;
+                //    Application.QuitAborted += OnQuitAborted;
 
-                    //string state;
-                    //var data = System.IO.File.ReadAllText(@"c:\temp\text1.txt");
-                    //Helpers.SpeckleStateManager.WriteState(document, Constants.SpeckleAutoCADStreamsKey, data);
-                    //data = Helpers.SpeckleStateManager.ReadState(document, Constants.SpeckleAutoCADStreamsKey);
-                    //System.IO.File.WriteAllText(@"c:\temp\text2.txt", data);
-
-                    //var pr = new SpeckleAutoCAD.Helpers.ProgressReporter();
-                    //System.Threading.Tasks.Task.Run(
-                    //    () =>
-                    //    {
-                    //        pr.ReportProgress(() =>
-                    //        {
-                    //            var data = System.IO.File.ReadAllText(@"c:\temp\text1.txt");
-                    //            Helpers.SpeckleStateManager.WriteState(document, Constants.SpeckleAutoCADStreamsKey, data);
-                    //        });
-                    //    });
-                }
-                else
-                {
-                    // Signal Speckle UI application to show
-                    ewh.Set();
-                }
+                //    launched = true;
+                //}
+                //else
+                //{
+                //    // Signal Speckle UI application to show
+                //    showSpeckleUISignal.Set();
+                //}
 
 
             }
@@ -179,6 +162,35 @@ namespace SpeckleAutoCAD
 
             }
            
+        }
+
+        private void OnImpliedSelectionChanged(object sender, EventArgs e)
+        {
+            if (quitting == false)
+            {
+                //selectionChangedSignal.Set();
+            }
+            
+        }
+
+        private void OnBeginDocumentClose(object sender, DocumentBeginCloseEventArgs e)
+        {
+            Application.DocumentManager.MdiActiveDocument.ImpliedSelectionChanged -= OnImpliedSelectionChanged;
+        }
+
+        private void OnBeginQuit(object sender, BeginQuitEventArgs e)
+        {
+            quitting = true;
+        }
+
+        private void OnQuitAborted(object sender, EventArgs e)
+        {
+            quitting = false;
+        }
+
+        private void OnBeginCloseAll(object sender, BeginCloseAllEventArgs e)
+        {
+            quitting = true;
         }
 
         [DllImport("user32.dll", EntryPoint = "SetWindowLongPtr")]

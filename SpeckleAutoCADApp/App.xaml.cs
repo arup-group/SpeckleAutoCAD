@@ -20,30 +20,29 @@ namespace SpeckleAutoCADApp
         void App_Startup(object sender, StartupEventArgs e)
         {
             DataPipeClient dataPipeClient;
-            SpeckleUIBindingsAutoCAD bindings;
 
-            if (e.Args.Length == 3)
+            if (e.Args.Length == 4)
             {
                 dataPipeClient = new DataPipeClient(e.Args[0], e.Args[1]);
                 AutocadDataService.DataPipeClient = dataPipeClient;
-                bindings = new SpeckleUIBindingsAutoCAD(dataPipeClient);
+                uibindings = new SpeckleUIBindingsAutoCAD(dataPipeClient);
 
-                ewh = EventWaitHandle.OpenExisting(e.Args[2]);
+                waitHandles = new WaitHandle[2];
+                waitHandles[SHOW_UI_SIGNAL] = EventWaitHandle.OpenExisting(e.Args[2]);
+                waitHandles[AUTOCAD_SELECTION_CHANGED_SIGNAL] = EventWaitHandle.OpenExisting(e.Args[3]);
                 eventProcessorThread = new Thread(ProcessEvent);
+                eventProcessorThread.IsBackground = true;
                 eventProcessorThread.Start();
             }
             else
             {
-                bindings = new SpeckleUIBindingsAutoCAD(null);
+                uibindings = new SpeckleUIBindingsAutoCAD(null);
             }
 
 
-            // Create main application window, starting minimized if specified
-            SpeckleWindow = new SpeckleUiWindow(bindings, @"https://appui.speckle.systems/#/");
+            //Create main application window
+            SpeckleWindow = new SpeckleUiWindow(uibindings, @"https://appui.speckle.systems/#/");
             SpeckleWindow.Show();
-
-            // ewh = new EventWaitHandle(false, EventResetMode.AutoReset, Constants.SpeckleNotificationEventName);
-            
         }
 
         void App_Exit(object sender, ExitEventArgs e)
@@ -63,20 +62,38 @@ namespace SpeckleAutoCADApp
         {
             while (true)
             {
-                ewh.WaitOne();
-                SpeckleWindow.Dispatcher.BeginInvoke(
-                    new Action(() =>
-                    {
-                        SpeckleWindow.Show();
-                    })
-                );
+                int index = WaitHandle.WaitAny(waitHandles);
+                switch (index)
+                {
+                    case SHOW_UI_SIGNAL:
+                        SpeckleWindow.Dispatcher.BeginInvoke
+                        (
+                            new Action(() =>
+                            {
+                                SpeckleWindow.Show();
+                            })
+                        );
+                        break;
+                    case AUTOCAD_SELECTION_CHANGED_SIGNAL:
+                        SpeckleWindow.Dispatcher.BeginInvoke
+                        (
+                            new Action(() =>
+                            {
+                                uibindings.OnAutocadSelectionChanged();
+                            })
+                        );
+                        break;
+                }
+
             }
         }
 
-        public SpeckleUIBindingsAutoCAD uiBindings;
+        public SpeckleUIBindingsAutoCAD uibindings;
         public SpeckleUiWindow SpeckleWindow;
         private Thread eventProcessorThread;
-        private EventWaitHandle ewh;
+        private WaitHandle[] waitHandles;
+        private const int SHOW_UI_SIGNAL = 0;
+        private const int AUTOCAD_SELECTION_CHANGED_SIGNAL = 1;
     }
 }
 
