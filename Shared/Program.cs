@@ -24,6 +24,7 @@ namespace SpeckleAutoCAD
         private static string selectionChangedSignalId;
         private static bool quitting;
         private static bool raiseSelectionChanged;
+        private static Document boundDocument;
 
         #region IExtensionApplication Members
 
@@ -62,7 +63,9 @@ namespace SpeckleAutoCAD
 
                 if (launched == false)
                 {
+                    boundDocument = Application.DocumentManager.MdiActiveDocument;
                     var requestProcessor = new RequestProcessor();
+                    requestProcessor.BoundDocument = boundDocument;
                     var dataPipeServer = new DataPipeServer(requestProcessor.ProcessRequest);
                     pipeServerThread = new Thread(dataPipeServer.Run);
                     pipeServerThread.IsBackground = true;
@@ -94,13 +97,13 @@ namespace SpeckleAutoCAD
                         System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle
                     );
 
-                    Application.DocumentManager.MdiActiveDocument.ImpliedSelectionChanged += OnImpliedSelectionChanged;
-                    Application.DocumentManager.MdiActiveDocument.BeginDocumentClose += OnBeginDocumentClose;
-                    Application.DocumentManager.MdiActiveDocument.CloseAborted += OnCloseAborted;
+                    boundDocument.ImpliedSelectionChanged += OnImpliedSelectionChanged;
+                    boundDocument.BeginDocumentClose += OnBeginDocumentClose;
+                    boundDocument.CloseAborted += OnCloseAborted;
                     Application.BeginQuit += OnBeginQuit;
                     Application.QuitAborted += OnQuitAborted;
                     Application.BeginCloseAll += OnBeginCloseAll;
-                    Application.Idle += Application_Idle;
+                    Application.Idle += OnApplicationIdle;
 
                     launched = true;
                 }
@@ -114,7 +117,9 @@ namespace SpeckleAutoCAD
             }
             catch (System.Exception ex)
             {
+                launched = false;
                 Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage( "\n" + ex.Message);
+                Cleanup();
             }
             finally
             {
@@ -122,9 +127,26 @@ namespace SpeckleAutoCAD
             }
         }
 
-        private void Application_Idle(object sender, EventArgs e)
+        private bool OnApplicationIdleEnabled()
         {
+            if (boundDocument == null || boundDocument.IsActive == false)
+            {
+                return false;
+            }
+
             if (raiseSelectionChanged == true && selectionChangedSignal != null)
+            {
+                return true;
+            }
+            else 
+            {
+                return false;
+            }
+        }
+
+        private void OnApplicationIdle(object sender, EventArgs e)
+        {
+            if (OnApplicationIdleEnabled())
             {
                 selectionChangedSignal.Set();
                 raiseSelectionChanged = false;
@@ -223,13 +245,20 @@ namespace SpeckleAutoCAD
             CloseEventWaitHandles();
             quitting = false;
             launched = false;
+            raiseSelectionChanged = false;
+            boundDocument = null;
         }
 
         private void RemoveEventHandlers()
         {
-            Application.DocumentManager.MdiActiveDocument.ImpliedSelectionChanged -= OnImpliedSelectionChanged;
-            Application.DocumentManager.MdiActiveDocument.BeginDocumentClose -= OnBeginDocumentClose;
-            Application.DocumentManager.MdiActiveDocument.CloseAborted -= OnCloseAborted;
+            Application.Idle -= OnApplicationIdle;
+            if (boundDocument != null)
+            {
+                boundDocument.ImpliedSelectionChanged -= OnImpliedSelectionChanged;
+                boundDocument.BeginDocumentClose -= OnBeginDocumentClose;
+                boundDocument.CloseAborted -= OnCloseAborted;
+            }
+
             Application.BeginQuit -= OnBeginQuit;
             Application.QuitAborted -= OnQuitAborted;
             Application.BeginCloseAll -= OnBeginCloseAll;

@@ -21,7 +21,7 @@ namespace SpeckleAutoCAD
             pr = new ProgressReporter();
         }
 
-        public Document CurrentDocument => Application.DocumentManager.MdiActiveDocument;
+        public Document BoundDocument { get; set; }
         public string ProcessRequest(string sRequest)
         {
             Response response;
@@ -81,7 +81,7 @@ namespace SpeckleAutoCAD
                         response.Operation = request.Operation;
                         pr.ReportProgress(() =>
                         {
-                            response.Data = CurrentDocument.Name;
+                            response.Data = BoundDocument.Name;
                         });
 
                         response.StatusCode = 200;
@@ -90,7 +90,7 @@ namespace SpeckleAutoCAD
                         response.Operation = request.Operation;
                         pr.ReportProgress(() =>
                         {
-                            response.Data = SpeckleStateManager.ReadState(CurrentDocument, Constants.SpeckleAutoCADClientsKey);
+                            response.Data = SpeckleStateManager.ReadState(BoundDocument, Constants.SpeckleAutoCADClientsKey);
                         });
                         response.StatusCode = 200;
                         break;
@@ -98,7 +98,7 @@ namespace SpeckleAutoCAD
                         response.Operation = request.Operation;
                         pr.ReportProgress(() =>
                         {
-                            SpeckleStateManager.WriteState(CurrentDocument, Constants.SpeckleAutoCADClientsKey, request.Data);
+                            SpeckleStateManager.WriteState(BoundDocument, Constants.SpeckleAutoCADClientsKey, request.Data);
                         });
                         response.StatusCode = 200;
                         break;
@@ -106,7 +106,7 @@ namespace SpeckleAutoCAD
                         response.Operation = request.Operation;
                         pr.ReportProgress(() =>
                         {
-                            response.Data = CurrentDocument.Database.Filename;
+                            response.Data = BoundDocument.Database.Filename;
                         });
 
                         response.StatusCode = 200;
@@ -115,7 +115,7 @@ namespace SpeckleAutoCAD
                         response.Operation = request.Operation;
                         pr.ReportProgress(() =>
                         {
-                            response.Data = SpeckleStateManager.ReadState(CurrentDocument, Constants.SpeckleAutoCADStreamsKey);
+                            response.Data = SpeckleStateManager.ReadState(BoundDocument, Constants.SpeckleAutoCADStreamsKey);
                         });
                         response.StatusCode = 200;
                         break;
@@ -123,13 +123,13 @@ namespace SpeckleAutoCAD
                         response.Operation = request.Operation;
                         pr.ReportProgress(() =>
                         {
-                            SpeckleStateManager.WriteState(CurrentDocument, Constants.SpeckleAutoCADStreamsKey, request.Data);
+                            SpeckleStateManager.WriteState(BoundDocument, Constants.SpeckleAutoCADStreamsKey, request.Data);
                         });
                         response.StatusCode = 200;
                         break;
                     case Operation.GetSelectionCount:
                         response.Operation = request.Operation;
-                        pr.ReportProgressAsync(() =>
+                        pr.ReportProgress(() =>
                         {
                             response.Data = GetSelectionCountAsJSON();
                         });
@@ -159,7 +159,7 @@ namespace SpeckleAutoCAD
         {
             var lineList = new List<long>();
             RXClass rxClass = RXClass.GetClass(typeof(Line));
-            var db = CurrentDocument.Database;
+            var db = BoundDocument.Database;
             using (var tr = db.TransactionManager.StartTransaction())
             {
                 var btr = (BlockTableRecord)tr.GetObject(SymbolUtilityServices.GetBlockModelSpaceId(db), OpenMode.ForRead);
@@ -186,7 +186,7 @@ namespace SpeckleAutoCAD
         {
             var arcList = new List<long>();
             RXClass rxClass = RXClass.GetClass(typeof(Arc));
-            var db = CurrentDocument.Database;
+            var db = BoundDocument.Database;
             using (var tr = db.TransactionManager.StartTransaction())
             {
                 var btr = (BlockTableRecord)tr.GetObject(SymbolUtilityServices.GetBlockModelSpaceId(db), OpenMode.ForRead);
@@ -213,7 +213,7 @@ namespace SpeckleAutoCAD
         {
             var pList = new List<long>();
             RXClass rxClass = RXClass.GetClass(typeof(Polyline));
-            var db = CurrentDocument.Database;
+            var db = BoundDocument.Database;
             using (var tr = db.TransactionManager.StartTransaction())
             {
                 var btr = (BlockTableRecord)tr.GetObject(SymbolUtilityServices.GetBlockModelSpaceId(db), OpenMode.ForRead);
@@ -240,7 +240,7 @@ namespace SpeckleAutoCAD
         {
             var lineList = new List<List<double>>();
             RXClass rxClass = RXClass.GetClass(typeof(Line));
-            var db = CurrentDocument.Database;
+            var db = BoundDocument.Database;
             using (var tr = db.TransactionManager.StartTransaction())
             {
                 var btr = (BlockTableRecord)tr.GetObject(SymbolUtilityServices.GetBlockModelSpaceId(db), OpenMode.ForRead);
@@ -310,7 +310,7 @@ namespace SpeckleAutoCAD
         private string GetObjectAsJSON(long longHandle)
         {
             SpeckleAutoCAD.DTO.DTO dto;
-            var db = CurrentDocument.Database;
+            var db = BoundDocument.Database;
             Handle handle = new Handle(longHandle);
             ObjectId objectId = db.GetObjectId(false, handle, 0);
 
@@ -372,7 +372,7 @@ namespace SpeckleAutoCAD
         private string GetSelectionCountAsJSON()
         {
             int selectionCount = 0;
-            var editor = CurrentDocument.Editor;
+            var editor = BoundDocument.Editor;
             var selectionResult = editor.SelectImplied();
             if (selectionResult.Status == Autodesk.AutoCAD.EditorInput.PromptStatus.OK)
             {
