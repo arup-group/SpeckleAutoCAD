@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Autodesk.AutoCAD.EditorInput;
+using SpeckleAutoCAD.Helpers.WinAPI;
 
 namespace SpeckleAutoCAD
 {
@@ -59,6 +60,11 @@ namespace SpeckleAutoCAD
                 if (launchingCount > 1)
                 {
                     return;
+                }
+
+                if (launched == true && WinApi.IsWindowVisible(speckleAutoCADAppProcess.MainWindowHandle) == false)
+                {
+                    Cleanup();
                 }
 
                 if (launched == false)
@@ -279,6 +285,26 @@ namespace SpeckleAutoCAD
                 selectionChangedSignal = null;
                 selectionChangedSignalId = null;
             }
+        }
+
+        private bool IsSpeckleUIWindowHidden()
+        {
+            WINDOWPLACEMENT placement = new WINDOWPLACEMENT();
+            placement.Length = Marshal.SizeOf(placement);
+            var success = WinApi.GetWindowPlacement(speckleAutoCADAppProcess.MainWindowHandle, ref placement);
+            
+            if (success == false)
+            {
+                return false;
+            }
+
+            if (placement.ShowCmd == ShowWindowCommands.Hide)
+            {
+                return true;
+            }
+
+            return false;
+
         }
 
         [DllImport("user32.dll", EntryPoint = "SetWindowLongPtr")]

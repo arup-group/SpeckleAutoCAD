@@ -19,6 +19,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\ProgressReporter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\SpeckleStateManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\StringExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\winapi.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\WinAPI\POINT.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\WinAPI\RECT.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\WinAPI\ShowWindowCommandEnum.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\WinAPI\WinApi.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\WinAPI\WINDOWPLACEMENT.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Program.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RequestProcessor.cs" />
   </ItemGroup>

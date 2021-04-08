@@ -183,6 +183,7 @@
     <Compile Include="PayloadConverter.cs" />
     <Compile Include="Receiver.cs" />
     <Compile Include="Sender.cs" />
+    <Compile Include="SpeckleAutocadUiWindow.cs" />
     <Compile Include="SpeckleUiBindings.cs" />
   </ItemGroup>
   <ItemGroup>

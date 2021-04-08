@@ -9,6 +9,7 @@ using SpeckleUiBase;
 using SpeckleAutoCADApp.UI;
 using SpeckleAutoCAD;
 using System.Threading;
+using System.ComponentModel;
 
 namespace SpeckleAutoCADApp
 {
@@ -42,7 +43,9 @@ namespace SpeckleAutoCADApp
 
             //Create main application window
             SpeckleWindow = new SpeckleUiWindow(uibindings, @"https://appui.speckle.systems/#/");
+            //SpeckleWindow = new SpeckleAutocadUiWindow(uibindings, @"https://appui.speckle.systems/#/");
             SpeckleWindow.Show();
+            //SpeckleWindow.Closing += OnClosing;
         }
 
         void App_Exit(object sender, ExitEventArgs e)
@@ -86,6 +89,13 @@ namespace SpeckleAutoCADApp
                 }
 
             }
+        }
+
+
+        private void OnClosing(object sender, CancelEventArgs e)
+        {
+            e.Cancel = false;
+            Application.Current.Shutdown();
         }
 
         public SpeckleUIBindingsAutoCAD uibindings;
