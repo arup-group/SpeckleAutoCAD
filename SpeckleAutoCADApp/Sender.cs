@@ -38,6 +38,7 @@ namespace SpeckleAutoCADApp.UI
             ISelectionFilter filter = JsonConvert.DeserializeObject(JsonConvert.SerializeObject(client.filter), GetFilterType(client.filter.Type.ToString()));
             //GetSelectionFilterObjects(filter, client._id.ToString(), client.streamId.ToString());
             GetSelectionFilterObjects(filter, client._id.ToString(), client.streamId.ToString());
+            SpeckleTelemetry.RecordStreamCreated("AutoCAD");
         }
 
         // Send objects to Speckle server. Triggered on "Push!".
@@ -214,7 +215,8 @@ namespace SpeckleAutoCADApp.UI
 
                 if (filter.Name == "Selection")
                 {
-
+                    var selFilter = filter as ElementsSelectionFilter;
+                    selectionIds = selFilter.Selection.Select(x => long.Parse(x)).ToList();
                 }
                 else if (filter.Name == "Object Type")
                 {
@@ -350,6 +352,27 @@ namespace SpeckleAutoCADApp.UI
             {
 
             }
+        }
+
+        public override void AddSelectionToSender(string args)
+        {
+            var selectedObjects = new List<string>();
+            var request = new Request
+            {
+                Operation = Operation.GetSelectedIds,
+                Data = string.Empty
+            };
+
+            var response = dataPipeClient.SendRequest(request);
+            if (!string.IsNullOrEmpty(response.Data))
+            {
+                selectedObjects = JsonConvert.DeserializeObject<List<string>>(response.Data);
+            }
+
+            NotifyUi("update-selection", JsonConvert.SerializeObject(new
+            {
+                selectedObjects
+            }));
         }
     }
 }

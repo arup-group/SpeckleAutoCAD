@@ -133,7 +133,14 @@ namespace SpeckleAutoCAD
                         {
                             response.Data = GetSelectionCountAsJSON();
                         });
-
+                        response.StatusCode = 200;
+                        break;
+                    case Operation.GetSelectedIds:
+                        response.Operation = request.Operation;
+                        pr.ReportProgress(() =>
+                        {
+                            response.Data = GetSelectedIdsAsJSON();
+                        });
                         response.StatusCode = 200;
                         break;
                     default:
@@ -380,6 +387,31 @@ namespace SpeckleAutoCAD
             }
 
             return JsonConvert.SerializeObject(selectionCount);
+        }
+
+        private string GetSelectedIdsAsJSON()
+        {
+            var list = new List<string>();
+            var db = BoundDocument.Database;
+            using (var tr = db.TransactionManager.StartTransaction())
+            {
+                var editor = BoundDocument.Editor;
+                var selectionResult = editor.SelectImplied();
+                if (selectionResult.Status == Autodesk.AutoCAD.EditorInput.PromptStatus.OK)
+                {
+                    foreach (var id in selectionResult.Value.GetObjectIds())
+                    {
+                        using (var o = tr.GetObject(id, OpenMode.ForRead))
+                        {
+                            list.Add(o.Handle.Value.ToString());
+                        }
+                    }
+                }
+
+                tr.Commit();
+            }
+
+            return JsonConvert.SerializeObject(list);
         }
 
         private ProgressReporter pr;

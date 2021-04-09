@@ -20,12 +20,6 @@ namespace SpeckleAutoCADApp.UI
         }
 
 
-        public override void AddSelectionToSender(string args)
-        {
-            
-        }
-
-
         public override string GetApplicationHostName()
         {
             return "AutoCAD";
