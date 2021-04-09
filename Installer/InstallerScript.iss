@@ -1,15 +1,15 @@
 #define AppName "SpeckleAutoCAD"
 #define AppPublisher "Speckle"
 #define AppURL "https://github.com/arup-group/SpeckleAutoCAD"
-#define AppVersion "1.0.0.38358"
+;#define AppVersion "1.0.0.38358"
 #define ErrorMessage "AutoCAD/Civil3D is not installed on this machine. Setup will now exit."
-
+#define VersionStatus "Alpha"
 
 [Setup]
 AppId={{FFE541D3-60E4-4A3E-8224-D0C51F238690}
 AppName={#AppName}
 AppVersion={#AppVersion}
-AppVerName={#AppName} {#AppVersion}
+AppVerName={#AppName} {#AppVersion} {#VersionStatus}
 AppPublisher={#AppPublisher}
 AppPublisherURL={#AppURL}
 AppSupportURL={#AppURL}

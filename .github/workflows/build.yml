@@ -14,6 +14,12 @@ jobs:
     name: Build Speckle AutoCAD plugin
     runs-on: windows-latest
     steps:
+    - name: Calculate tag version
+      id: calculateTagVersion
+      run: |
+        $tag = "1.0.0.$($env:GITHUB_RUN_NUMBER%65536)"
+        echo "::set-output name=tag::$tag"
+        
     - name: Check out repository
       uses: actions/checkout@v2
       with:
@@ -42,17 +48,11 @@ jobs:
         echo "::set-output name=pfxPath::$certificatePath"
 
     - name: Create installer
-      run: iscc /dAppVersion="1.0.0-alpha+38358" "/Ssigntool=C:\Program Files (x86)\Windows Kits\10\bin\10.0.17763.0\x86\signtool.exe sign /f ""${{ steps.decodePfxCert.outputs.pfxPath }}"" /p ""${{ secrets.PFX_CERT_PASSWORD }}"" /t http://timestamp.comodoca.com $f" Installer/InstallerScript.iss
+      run: iscc /DAppVersion="${{ steps.calculateTagVersion.outputs.tag }}" "/Ssigntool=C:\Program Files (x86)\Windows Kits\10\bin\10.0.17763.0\x86\signtool.exe sign /f ""${{ steps.decodePfxCert.outputs.pfxPath }}"" /p ""${{ secrets.PFX_CERT_PASSWORD }}"" /t http://timestamp.comodoca.com $f" Installer/InstallerScript.iss
       shell: cmd
     
     - name: Remove PFX cert
-      run: Remove-Item -path "${{ steps.decodePfxCert.outputs.pfxPath }}"
-    
-    - name: Calculate tag version
-      id: calculateTagVersion
-      run: |
-        $tag = "1.0.0-alpha+38358"
-        echo "::set-output name=tag::$tag"
+      run: Remove-Item -path "${{ steps.decodePfxCert.outputs.pfxPath }}"    
   
     - name: Upload build files
       uses: actions/upload-artifact@v2-preview
@@ -67,7 +67,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
       with:
         tag_name: ${{ steps.calculateTagVersion.outputs.tag }}
-        release_name: Speckle AutoCAD Installer ${{ steps.calculateTagVersion.outputs.tag }}
+        release_name: Speckle AutoCAD Installer ${{ steps.calculateTagVersion.outputs.tag }} Alpha
         body: |
           Automated release of Speckle AutoCAD Installer
         draft: false
