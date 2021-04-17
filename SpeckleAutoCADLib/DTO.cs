@@ -15,6 +15,7 @@ namespace SpeckleAutoCAD.DTO
     public class Payload
     {
         public Dictionary<string, Dictionary<string, dynamic>> PropertySets { get; set; }
+        public Dictionary<string, dynamic> Properties { get; set; }
     }
 
     public class LinePayload : Payload

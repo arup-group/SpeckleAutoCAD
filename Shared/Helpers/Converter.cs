@@ -129,6 +129,15 @@ namespace SpeckleAutoCAD.Helpers
                 }
             }
 
+            var properties = new Dictionary<string, dynamic>()
+            {
+                {"EndPoint", new DTO.PointPayload {Value = new List<double> {polyline.EndPoint.X, polyline.EndPoint.Y, polyline.EndPoint.Z}}},
+                {"Layer", polyline.Layer},
+                {"Length", polyline.Length},
+                {"StartPoint", new DTO.PointPayload {Value = new List<double> {polyline.StartPoint.X, polyline.StartPoint.Y, polyline.StartPoint.Z}}},
+            };
+
+            polycurvePayload.Properties = properties;                   
             return polycurvePayload;
         }
 

@@ -264,6 +264,19 @@ namespace SpeckleAutoCADApp.UI
                                     selectionIds.AddRange(JsonConvert.DeserializeObject<List<long>>(response.Data));
                                 }
                                 break;
+                            case Constants.Alignment:
+                                request = new Request
+                                {
+                                    Operation = Operation.GetAllAlignmentIds,
+                                    Data = string.Empty
+                                };
+
+                                response = dataPipeClient.SendRequest(request);
+                                if (!string.IsNullOrEmpty(response.Data))
+                                {
+                                    selectionIds.AddRange(JsonConvert.DeserializeObject<List<long>>(response.Data));
+                                }
+                                break;
                         }
                     }
                 }

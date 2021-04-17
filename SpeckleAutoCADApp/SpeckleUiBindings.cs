@@ -107,7 +107,7 @@ namespace SpeckleAutoCADApp.UI
                 {
                     Name = "Object Type",
                     Icon = "category",
-                    Values = new List<string>() { Constants.Arc, Constants.Line, Constants.Polyline }
+                    Values = new List<string>() { Constants.Alignment, Constants.Arc, Constants.Line, Constants.Polyline }
                 },
             };
         }

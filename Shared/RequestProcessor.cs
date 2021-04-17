@@ -11,17 +11,45 @@ using System.Linq;
 using Autodesk.AutoCAD.Runtime;
 using SpeckleAutoCAD;
 using Autodesk.Aec.PropertyData.DatabaseServices;
+using ACD = Autodesk.Civil.DatabaseServices;
+using System.Threading;
 
 namespace SpeckleAutoCAD
 {
     public class RequestProcessor
     {
-        public RequestProcessor()
+        public RequestProcessor(EventWaitHandle requestWaitingSignal, EventWaitHandle requestCompletedSignal)
         {
             pr = new ProgressReporter();
+            this.requestWaitingSignal = requestWaitingSignal;
+            this.requestCompletedSignal = requestCompletedSignal;
+
         }
 
+        public Action ActionToComplete 
+        {
+            get
+            {
+                return waitingAction;
+            }
+        }
+
+        public int ProcessingMode
+        {
+            get
+            {
+                return processingMode;
+            }
+            set
+            {
+                lock(processingModeLock) 
+                {
+                    processingMode = value;
+                }
+            }
+        }
         public Document BoundDocument { get; set; }
+        public CivilDocument BoundCivilDocument { get; set; }
         public string ProcessRequest(string sRequest)
         {
             Response response;
@@ -70,10 +98,22 @@ namespace SpeckleAutoCAD
                         break;
                     case Operation.GetObject:
                         response.Operation = request.Operation;
-                        pr.ReportProgress(() =>
+                        Action a = () =>
                         {
                             response.Data = GetObjectAsJSON(Convert.ToInt64(request.Data));
-                        });
+                        };
+
+                        if (ProcessingMode == 1)
+                        {
+                            waitingAction = a;
+                            requestWaitingSignal.Set();
+                            requestCompletedSignal.WaitOne(-1);
+                        }
+                        else
+                        {
+                            waitingAction = null;
+                            pr.ReportProgress(a);
+                        }
 
                         response.StatusCode = 200;
                         break;
@@ -141,6 +181,15 @@ namespace SpeckleAutoCAD
                         {
                             response.Data = GetSelectedIdsAsJSON();
                         });
+                        response.StatusCode = 200;
+                        break;
+                    case Operation.GetAllAlignmentIds:
+                        response.Operation = request.Operation;
+                        pr.ReportProgress(() =>
+                        {
+                            response.Data = GetObjectHandlesAsJSON(typeof(ACD.Alignment));
+                        });
+
                         response.StatusCode = 200;
                         break;
                     default:
@@ -325,17 +374,24 @@ namespace SpeckleAutoCAD
             {
                 using (DBObject obj = tr.GetObject(objectId, OpenMode.ForRead))
                 {
-                    if (objectId.ObjectClass.IsDerivedFrom(RXClass.GetClass(typeof(Line))))
+                    if (objectId.ObjectClass.GetRuntimeType() == typeof(Line))
                     {
                         dto = GetLineDTO(obj);
                     }
-                    else if (objectId.ObjectClass.IsDerivedFrom(RXClass.GetClass(typeof(Arc))))
+                    else if (objectId.ObjectClass.GetRuntimeType() == typeof(Arc))
                     {
                         dto = GetArcDTO(obj);
                     }
-                    else if (objectId.ObjectClass.IsDerivedFrom(RXClass.GetClass(typeof(Polyline))))
+                    else if (objectId.ObjectClass.GetRuntimeType() == typeof(Polyline))
                     {
                         dto = GetPolylineDTO(obj);
+                    }
+                    else if (objectId.ObjectClass.GetRuntimeType() == typeof(ACD.Alignment))
+                    {
+                        //var x = obj as ACD.Alignment;
+                        //var y = x.GetPolyline();
+                        dto = GetAlignmentDTO(obj);
+                        //dto = new DTO.DTO();
                     }
                     else
                     {
@@ -414,6 +470,59 @@ namespace SpeckleAutoCAD
             return JsonConvert.SerializeObject(list);
         }
 
+        private string GetObjectHandlesAsJSON(Type t)
+        {
+            var handles = new List<long>();
+            var db = BoundDocument.Database;
+            using (var tr = db.TransactionManager.StartTransaction())
+            {
+                var btr = (BlockTableRecord)tr.GetObject(SymbolUtilityServices.GetBlockModelSpaceId(db), OpenMode.ForRead);
+                var ids =
+                    from ObjectId id in btr
+                    where id.ObjectClass.GetRuntimeType() == t
+                    select id;
+
+                foreach (var id in ids)
+                {
+                    using (var o = tr.GetObject(id, OpenMode.ForRead))
+                    {
+                        handles.Add(o.Handle.Value);
+                    }
+                }
+
+                tr.Commit();
+            }
+
+            return JsonConvert.SerializeObject(handles);
+        }
+
+        private DTO.DTO GetAlignmentDTO(DBObject obj)
+        {
+            var dto = new SpeckleAutoCAD.DTO.DTO();
+            var alignment = obj as ACD.Alignment;
+            var polyLineId = alignment.GetPolyline();
+            var polyline = polyLineId.GetObject(OpenMode.ForRead) as Polyline;
+            var payload = polyline.ToPolycurvePayload();
+            var properties = payload.Properties;
+
+            properties["AlignmentType"] = Enum.GetName(typeof(ACD.AlignmentType), alignment.AlignmentType);
+            properties["EndingStation"] = alignment.EndingStation;
+            properties["Layer"] = alignment.Layer;
+            properties["Name"] = alignment.Name;                   
+            properties["StartingStation"] = alignment.StartingStation;
+
+
+            payload.PropertySets = GetPropertySets(alignment);
+            dto.ObjectType = Constants.Polyline;
+            dto.Data = JsonConvert.SerializeObject(payload);
+            return dto;
+        }
+
         private ProgressReporter pr;
+        private int processingMode;
+        private object processingModeLock = new object();
+        private EventWaitHandle requestWaitingSignal;
+        private EventWaitHandle requestCompletedSignal;
+        private Action waitingAction;
     }
 }

@@ -10,6 +10,9 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Autodesk.AutoCAD.EditorInput;
 using SpeckleAutoCAD.Helpers.WinAPI;
+using ACD = Autodesk.Civil.DatabaseServices;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SpeckleAutoCAD
 {
@@ -26,6 +29,11 @@ namespace SpeckleAutoCAD
         private static bool quitting;
         private static bool raiseSelectionChanged;
         private static Document boundDocument;
+        private static RequestProcessor requestProcessor;
+        private static EventWaitHandle requestWaitingSignal;
+        private static string requestWaitingSignalId;
+        private static EventWaitHandle requestCompletedSignal;
+        private static string requestCompletedSignalId;
 
         #region IExtensionApplication Members
 
@@ -51,6 +59,71 @@ namespace SpeckleAutoCAD
 
         #endregion  
 
+        [CommandMethod("speckleruncommand")]
+        public void RunCommand()
+        {
+            try
+            {
+                var action = requestProcessor.ActionToComplete;
+                if (action != null)
+                {
+                    action();
+                }
+            }
+            catch
+            {
+
+            }
+            finally
+            {
+                requestCompletedSignal.Set();
+            }            
+        }
+
+        [CommandMethod("myalign")]
+        public void GetAlignmentIds()
+        {
+            var t = typeof(ACD.Alignment);
+            var rxclass = RXClass.GetClass(t);
+            var res = rxclass.GetRuntimeType() == t;
+
+            var handles = new List<long>();
+            var db = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument.Database;
+            using (var tr = db.TransactionManager.StartTransaction())
+            {
+                var btr = (BlockTableRecord)tr.GetObject(SymbolUtilityServices.GetBlockModelSpaceId(db), OpenMode.ForRead);
+                var ids =
+                    from ObjectId id in btr
+                    where id.ObjectClass.GetRuntimeType() == t
+                    select id;
+
+                foreach (var id in ids)
+                {
+                    using (var o = tr.GetObject(id, OpenMode.ForRead) as ACD.Alignment)
+                    {
+                        handles.Add(o.Handle.Value);
+                        var polyLineId = o.GetPolyline();
+
+                    }
+                }
+
+                tr.Commit();
+            }
+
+            using (var tr = db.TransactionManager.StartTransaction())
+            {
+                foreach (var h in handles)
+                {
+                    var handle = new Handle(h);
+                    ObjectId objectId = db.GetObjectId(false, handle, 0);
+                    using (DBObject obj = tr.GetObject(objectId, OpenMode.ForRead))
+                    {
+                        var x = obj as ACD.Alignment;
+                        var y = x.GetPolyline();
+                    }
+                }
+            }
+        }
         [CommandMethod("Speckle")]
         public void Speckle()
         {
@@ -70,8 +143,15 @@ namespace SpeckleAutoCAD
                 if (launched == false)
                 {
                     boundDocument = Application.DocumentManager.MdiActiveDocument;
-                    var requestProcessor = new RequestProcessor();
+
+                    requestWaitingSignalId = Guid.NewGuid().ToString("N");
+                    requestWaitingSignal = new EventWaitHandle(false, EventResetMode.AutoReset, requestWaitingSignalId);
+                    requestCompletedSignalId = Guid.NewGuid().ToString("N");
+                    requestCompletedSignal = new EventWaitHandle(false, EventResetMode.AutoReset, requestCompletedSignalId);
+                    requestProcessor = new RequestProcessor(requestWaitingSignal, requestCompletedSignal);
                     requestProcessor.BoundDocument = boundDocument;
+                    requestProcessor.BoundCivilDocument = Autodesk.Civil.ApplicationServices.CivilApplication.ActiveDocument;
+
                     var dataPipeServer = new DataPipeServer(requestProcessor.ProcessRequest);
                     pipeServerThread = new Thread(dataPipeServer.Run);
                     pipeServerThread.IsBackground = true;
@@ -124,12 +204,13 @@ namespace SpeckleAutoCAD
             catch (System.Exception ex)
             {
                 launched = false;
-                Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage( "\n" + ex.Message);
+                Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\n" + ex.Message);
                 Cleanup();
             }
             finally
             {
                 launchingCount -= 1;
+                requestProcessor.ProcessingMode = 1;
             }
         }
 
@@ -152,10 +233,31 @@ namespace SpeckleAutoCAD
 
         private void OnApplicationIdle(object sender, EventArgs e)
         {
-            if (OnApplicationIdleEnabled())
+            try
             {
-                selectionChangedSignal.Set();
-                raiseSelectionChanged = false;
+                if (boundDocument == null || boundDocument.IsActive == false)
+                {
+                    return;
+                }
+
+                if (raiseSelectionChanged == true && selectionChangedSignal != null)
+                {
+                    selectionChangedSignal.Set();
+                    raiseSelectionChanged = false;
+                }
+
+                if (requestProcessor != null && requestProcessor.ProcessingMode == 1)
+                {
+                    if (requestWaitingSignal.WaitOne(0))
+                    {
+                        boundDocument.SendStringToExecute("speckleruncommand ", true, false, false);
+                    }
+                }
+
+            }
+            catch
+            {
+
             }
         }
 
