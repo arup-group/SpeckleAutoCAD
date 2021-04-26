@@ -3,3 +3,6 @@
 	url = https://github.com/arup-group/SpeckleUi.git
 	ignore = dirty
 	branch = master
+[submodule "SpeckleUiApp"]
+	path = SpeckleUiApp
+	url = https://github.com/arup-group/SpeckleUiApp.git
