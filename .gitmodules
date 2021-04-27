@@ -1,3 +1,6 @@
 [submodule "SpeckleUiApp"]
 	path = SpeckleUiApp
 	url = https://github.com/arup-group/SpeckleUiApp.git
+[submodule "SpeckleUi"]
+	path = SpeckleUi
+	url = https://github.com/arup-group/SpeckleUi.git
