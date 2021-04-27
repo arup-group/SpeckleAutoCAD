@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - 'master'
-      - 'installer2'
+      - 'alpha6'
     tags-ignore:
       - '*.*'
 
@@ -25,6 +25,14 @@ jobs:
       with:
         submodules: 'recursive'  
 
+    - name: Install third party dependencies
+      working-directory: SpeckleUiApp
+      run: npm ci 
+      
+    - name: build Speckle UI App
+      working-directory: SpeckleUiApp
+      run: npm run build 
+      
     - name: Install the latest version of nuget
       uses: nuget/setup-nuget@v1
       with:
