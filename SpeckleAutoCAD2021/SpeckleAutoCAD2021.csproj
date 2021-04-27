@@ -90,8 +90,45 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug65|AnyCPU'">
+    <OutputPath>bin\Debug65\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug65|x64'">
+    <OutputPath>bin\x64\Debug65\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <Optimize>false</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>  
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release65|AnyCPU'">
+    <OutputPath>bin\Release65\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release65|x64'">
+    <OutputPath>bin\x64\Release65\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="accoremgd">
@@ -145,14 +182,11 @@
     <ProjectReference Include="..\SpeckleAutoCADApp\SpeckleAutoCADApp.csproj">
       <Project>{38fd097c-3ac2-416e-95f8-e7722b8834c3}</Project>
       <Name>SpeckleAutoCADApp</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\SpeckleAutoCADLib\SpeckleAutoCADLib.csproj">
       <Project>{9c8b3047-6aa1-47e9-ad45-76e2d0819931}</Project>
       <Name>SpeckleAutoCADLib</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\SpeckleUi\SpeckleUiBase\SpeckleUiBase.csproj">
-      <Project>{ce40c576-3b05-443a-a1ba-cb3a796d0084}</Project>
-      <Name>SpeckleUiBase</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -165,8 +199,8 @@
   <Import Project="..\Shared\Shared.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="AfterBuild">
-    <CallTarget Condition="'$(Configuration)' == 'Debug57'" Targets="AfterBuildDebug" />
-    <CallTarget Condition="'$(Configuration)' == 'Release57'" Targets="AfterBuildRelease" />
+    <CallTarget Condition="'$(Configuration)' == 'Debug57' Or '$(Configuration)' == 'Debug65'" Targets="AfterBuildDebug" />
+    <CallTarget Condition="'$(Configuration)' == 'Release57' Or '$(Configuration)' == 'Release65'" Targets="AfterBuildRelease" />
   </Target>
   <Target Name="AfterBuildDebug">
     <ItemGroup>

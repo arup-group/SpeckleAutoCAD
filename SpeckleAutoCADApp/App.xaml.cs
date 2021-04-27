@@ -10,6 +10,8 @@ using SpeckleAutoCADApp.UI;
 using SpeckleAutoCAD;
 using System.Threading;
 using System.ComponentModel;
+using System.IO;
+using System.Reflection;
 
 namespace SpeckleAutoCADApp
 {
@@ -42,10 +44,11 @@ namespace SpeckleAutoCADApp
 
 
             //Create main application window
-            SpeckleWindow = new SpeckleUiWindow(uibindings, @"https://appui.speckle.systems/#/");
-            //SpeckleWindow = new SpeckleAutocadUiWindow(uibindings, @"https://appui.speckle.systems/#/");
+            var path = Directory.GetParent(Assembly.GetExecutingAssembly().Location);
+            var indexPath = string.Format(@"{0}\app\index.html", path);
+            indexPath = indexPath.Replace("\\", "/");
+            SpeckleWindow = new SpeckleUiWindow(uibindings, indexPath);
             SpeckleWindow.Show();
-            //SpeckleWindow.Closing += OnClosing;
         }
 
         void App_Exit(object sender, ExitEventArgs e)
