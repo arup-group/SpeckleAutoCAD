@@ -103,26 +103,41 @@ namespace SpeckleAutoCAD
                     {
                         handles.Add(o.Handle.Value);
                         var polyLineId = o.GetPolyline();
+                        using (var polyline = tr.GetObject(polyLineId, OpenMode.ForRead) as Polyline)
+                        {
+                            for (int i = 0; i < polyline.NumberOfVertices; i++)
+                            {
+                                var segmentType = polyline.GetSegmentType(i);
+                                if (segmentType == Autodesk.AutoCAD.DatabaseServices.SegmentType.Arc)
+                                {
+
+                                }
+                                else if (segmentType == Autodesk.AutoCAD.DatabaseServices.SegmentType.Line)
+                                {
+
+                                }
+                            }
+                        }
 
                     }
                 }
-
+                //tr.Abort();
                 tr.Commit();
             }
 
-            using (var tr = db.TransactionManager.StartTransaction())
-            {
-                foreach (var h in handles)
-                {
-                    var handle = new Handle(h);
-                    ObjectId objectId = db.GetObjectId(false, handle, 0);
-                    using (DBObject obj = tr.GetObject(objectId, OpenMode.ForRead))
-                    {
-                        var x = obj as ACD.Alignment;
-                        var y = x.GetPolyline();
-                    }
-                }
-            }
+            //using (var tr = db.TransactionManager.StartTransaction())
+            //{
+            //    foreach (var h in handles)
+            //    {
+            //        var handle = new Handle(h);
+            //        ObjectId objectId = db.GetObjectId(false, handle, 0);
+            //        using (DBObject obj = tr.GetObject(objectId, OpenMode.ForRead))
+            //        {
+            //            var x = obj as ACD.Alignment;
+            //            var y = x.GetPolyline();
+            //        }
+            //    }
+            //}
         }
         [CommandMethod("Speckle")]
         public void Speckle()

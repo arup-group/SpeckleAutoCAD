@@ -63,15 +63,15 @@ namespace SpeckleAutoCAD.Helpers
 
             var planePayload = new DTO.PlanePayload
             {
-                 Normal = normalPayload,
-                 Origin = new DTO.PointPayload 
-                 { 
-                     Value = new List<double> {arc.Center.X, arc.Center.Y, arc.Center.Z} 
-                 },
-                 XDir = new DTO.VectorPayload
-                 {
-                     Value = new List<double> { xAxis.X, xAxis.Y, xAxis.Z }
-                 },
+                Normal = normalPayload,
+                Origin = new DTO.PointPayload
+                {
+                    Value = new List<double> { arc.Center.X, arc.Center.Y, arc.Center.Z }
+                },
+                XDir = new DTO.VectorPayload
+                {
+                    Value = new List<double> { xAxis.X, xAxis.Y, xAxis.Z }
+                },
                 YDir = new DTO.VectorPayload
                 {
                     Value = new List<double> { yAxis.X, yAxis.Y, yAxis.Z }
@@ -145,13 +145,11 @@ namespace SpeckleAutoCAD.Helpers
         {
             //Choose the x-axis such that it lies along the line connecting the center of the arc to it's  start point (A).
             //This way start angle is always 0 as Speckle connectors expect.
-            var startPoint = ToWCS(arc.StartPoint, arc.Normal);
-            var center = ToWCS(arc.Center, arc.Normal);
-            var xAxis = Normalize(center.GetVectorTo(startPoint));
+            var xAxis = Normalize(arc.Center.GetVectorTo(arc.StartPoint));
 
             //Rotate point A by 90 degrees about z to get a point on the y-axis
-            var pointB = startPoint.RotateBy(90 * System.Math.PI / 180, arc.Normal, center);
-            var yAxis = Normalize(center.GetVectorTo(pointB));
+            var pointB = arc.StartPoint.RotateBy(90 * System.Math.PI / 180, arc.Normal, arc.Center);
+            var yAxis = Normalize(arc.Center.GetVectorTo(pointB));
 
             var arcNormal = Normalize(arc.Normal);
             var normalPayload = new DTO.VectorPayload
@@ -164,7 +162,7 @@ namespace SpeckleAutoCAD.Helpers
                 Normal = normalPayload,
                 Origin = new DTO.PointPayload
                 {
-                    Value = new List<double> { center.X, center.Y, center.Z }
+                    Value = new List<double> { arc.Center.X, arc.Center.Y, arc.Center.Z }
                 },
                 XDir = new DTO.VectorPayload
                 {

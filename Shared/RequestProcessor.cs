@@ -498,24 +498,27 @@ namespace SpeckleAutoCAD
 
         private DTO.DTO GetAlignmentDTO(DBObject obj)
         {
-            var dto = new SpeckleAutoCAD.DTO.DTO();
-            var alignment = obj as ACD.Alignment;
-            var polyLineId = alignment.GetPolyline();
-            var polyline = polyLineId.GetObject(OpenMode.ForRead) as Polyline;
-            var payload = polyline.ToPolycurvePayload();
-            var properties = payload.Properties;
+            using (var tr = obj.Database.TransactionManager.StartTransaction())
+            {
+                var dto = new SpeckleAutoCAD.DTO.DTO();
+                var alignment = obj as ACD.Alignment;
+                var polyLineId = alignment.GetPolyline();
+                var polyline = polyLineId.GetObject(OpenMode.ForRead) as Polyline;
+                var payload = polyline.ToPolycurvePayload();
+                var properties = payload.Properties;
 
-            properties["AlignmentType"] = Enum.GetName(typeof(ACD.AlignmentType), alignment.AlignmentType);
-            properties["EndingStation"] = alignment.EndingStation;
-            properties["Layer"] = alignment.Layer;
-            properties["Name"] = alignment.Name;                   
-            properties["StartingStation"] = alignment.StartingStation;
+                properties["AlignmentType"] = Enum.GetName(typeof(ACD.AlignmentType), alignment.AlignmentType);
+                properties["EndingStation"] = alignment.EndingStation;
+                properties["Layer"] = alignment.Layer;
+                properties["Name"] = alignment.Name;
+                properties["StartingStation"] = alignment.StartingStation;
 
 
-            payload.PropertySets = GetPropertySets(alignment);
-            dto.ObjectType = Constants.Polyline;
-            dto.Data = JsonConvert.SerializeObject(payload);
-            return dto;
+                payload.PropertySets = GetPropertySets(alignment);
+                dto.ObjectType = Constants.Polyline;
+                dto.Data = JsonConvert.SerializeObject(payload);
+                return dto;
+            }
         }
 
         private ProgressReporter pr;
