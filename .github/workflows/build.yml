@@ -62,11 +62,11 @@ jobs:
     - name: Remove PFX cert
       run: Remove-Item -path "${{ steps.decodePfxCert.outputs.pfxPath }}"    
   
-    - name: Upload build files
-      uses: actions/upload-artifact@v2-preview
-      with:
-        name: SpeckleAutoCAD-${{ steps.calculateTagVersion.outputs.tag }}
-        path: 'Release'
+#    - name: Upload build files
+#      uses: actions/upload-artifact@v2-preview
+#      with:
+#        name: SpeckleAutoCAD-${{ steps.calculateTagVersion.outputs.tag }}
+#        path: 'Release'
   
     - name: Create release
       id: createRelease
