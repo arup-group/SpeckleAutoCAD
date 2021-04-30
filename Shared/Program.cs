@@ -80,7 +80,7 @@ namespace SpeckleAutoCAD
             }            
         }
 
-        [CommandMethod("myalign")]
+        //[CommandMethod("myalign")]
         public void GetAlignmentIds()
         {
             var t = typeof(ACD.Alignment);
