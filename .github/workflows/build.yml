@@ -3,8 +3,7 @@ name: Build solution and installer
 on: 
   push:
     branches:
-      - 'master'
-      - 'alpha6'
+      - '*'
     tags-ignore:
       - '*.*'
 
@@ -38,6 +37,10 @@ jobs:
       with:
         nuget-version: 'latest'
 
+    - name: Analytics CLI - Restore NuGets
+      run: dotnet restore
+      working-directory: Analytics
+
     - name: NuGet restore
       run: nuget restore SpeckleAutoCAD.sln
       
@@ -46,6 +49,10 @@ jobs:
 
     - name: Run msbuild command in Release
       run: msbuild speckleautocad.sln -restore -p:Configuration=Release57 -p:platform=x64
+
+    - name: Analytics CLI - Compile CLI
+      run: dotnet build --configuration Release --runtime win-x64
+      working-directory: Analytics    
 
     - name: Decode PFX cert
       id: decodePfxCert
@@ -58,17 +65,20 @@ jobs:
     - name: Create installer
       run: iscc /DAppVersion="${{ steps.calculateTagVersion.outputs.tag }}" "/Ssigntool=C:\Program Files (x86)\Windows Kits\10\bin\10.0.17763.0\x86\signtool.exe sign /f ""${{ steps.decodePfxCert.outputs.pfxPath }}"" /p ""${{ secrets.PFX_CERT_PASSWORD }}"" /t http://timestamp.comodoca.com $f" Installer/InstallerScript.iss
       shell: cmd
+      env:
+        ENABLE_TELEMETRY_DOMAIN: ${{ secrets.ENABLE_TELEMETRY_DOMAIN }}
     
     - name: Remove PFX cert
       run: Remove-Item -path "${{ steps.decodePfxCert.outputs.pfxPath }}"    
   
-#    - name: Upload build files
-#      uses: actions/upload-artifact@v2-preview
-#      with:
-#        name: SpeckleAutoCAD-${{ steps.calculateTagVersion.outputs.tag }}
-#        path: 'Release'
+    - name: Upload build files
+      uses: actions/upload-artifact@v2-preview
+      with:
+        name: SpeckleAutoCAD-${{ steps.calculateTagVersion.outputs.tag }}
+        path: 'Installer/Build/SpeckleAutoCADInstaller.exe'
   
     - name: Create release
+      if: github.ref == 'refs/heads/master'
       id: createRelease
       uses: actions/create-release@latest
       env:
@@ -82,6 +92,7 @@ jobs:
         prerelease: true
 
     - name: Upload Release Asset
+      if: github.ref == 'refs/heads/master'
       id: uploadReleaseAsset 
       uses: actions/upload-release-asset@v1
       env:
