@@ -48,6 +48,7 @@ namespace SpeckleAutoCAD
         public const string Line = "Line";
         public const string None = "None";
         public const string Polyline = "Polyline";
+        public const string Polyline3d = "Polyline3d";
         public const string Alignment = "Alignment";
     }
 

@@ -63,4 +63,18 @@ namespace SpeckleAutoCAD.DTO
 
 
     }
+
+    public class AlignmentPayload : Payload
+    {
+        public bool Closed { get; set; }
+        public List<double> Points { get; set; }
+
+
+    }
+
+    public class PolylinePayload : Payload
+    {
+        public bool Closed { get; set; }
+        public List<double> Coordinates { get; set; }
+    }
 }

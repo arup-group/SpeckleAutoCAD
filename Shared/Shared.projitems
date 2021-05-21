@@ -15,6 +15,7 @@
     <Folder Include="$(MSBuildThisFileDirectory)Assets\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\AutoCadConsoleHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\Converter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\ProgressReporter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\SpeckleStateManager.cs" />

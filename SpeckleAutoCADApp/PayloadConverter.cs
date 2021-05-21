@@ -19,6 +19,13 @@ namespace SpeckleAutoCADApp
             return line;
         }
 
+        public static SpecklePolyline ToSpecklePolyline(this PolylinePayload payload)
+        {
+            var line = new SpecklePolyline(payload.Coordinates);
+            line.Closed = payload.Closed;
+            return line;
+        }
+
         public static SpeckleArc ToSpeckleArc(this ArcPayload payload)
         {
             var arc = new SpeckleArc(

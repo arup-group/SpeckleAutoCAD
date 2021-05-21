@@ -13,6 +13,7 @@ using SpeckleAutoCAD;
 using Autodesk.Aec.PropertyData.DatabaseServices;
 using ACD = Autodesk.Civil.DatabaseServices;
 using System.Threading;
+using Autodesk.AutoCAD.Geometry;
 
 namespace SpeckleAutoCAD
 {
@@ -352,13 +353,22 @@ namespace SpeckleAutoCAD
             return dto;
         }
 
-        private DTO.DTO GetPolylineDTO(DBObject obj)
+        private DTO.DTO GetDTO(Polyline polyline)
         {
             var dto = new SpeckleAutoCAD.DTO.DTO();
-            var pline = obj as Polyline;
-            var payload = pline.ToPolycurvePayload();
-            payload.PropertySets = GetPropertySets(pline);
+            var payload = polyline.ToPolycurvePayload();
+            payload.PropertySets = GetPropertySets(polyline);
             dto.ObjectType = Constants.Polyline;
+            dto.Data = JsonConvert.SerializeObject(payload);
+            return dto;
+        }
+
+        private DTO.DTO GetDTO(Polyline3d polyline)
+        {
+            var dto = new SpeckleAutoCAD.DTO.DTO();
+            var payload = polyline.ToPolylinePayload();
+            payload.PropertySets = GetPropertySets(polyline);
+            dto.ObjectType = Constants.Polyline3d;
             dto.Data = JsonConvert.SerializeObject(payload);
             return dto;
         }
@@ -384,7 +394,7 @@ namespace SpeckleAutoCAD
                     }
                     else if (objectId.ObjectClass.GetRuntimeType() == typeof(Polyline))
                     {
-                        dto = GetPolylineDTO(obj);
+                        dto = GetDTO(obj as Polyline);
                     }
                     else if (objectId.ObjectClass.GetRuntimeType() == typeof(ACD.Alignment))
                     {
@@ -496,26 +506,72 @@ namespace SpeckleAutoCAD
             return JsonConvert.SerializeObject(handles);
         }
 
+        public static List<double> Get3dPath(Polyline polyline, ACD.Profile profile)
+        {
+            Point3d point;
+            double interval = 1.0;
+            var points = new List<double>();
+            var station = -interval;
+            double elevation;
+
+            do
+            {
+                station += interval;
+                if (station > polyline.Length)
+                {
+                    station = polyline.Length;
+                }
+
+                elevation = profile.ElevationAt(station);
+                point = polyline.GetPointAtDist(station);
+                points.Add(point.X);
+                points.Add(point.Y);
+                points.Add(elevation);
+            } while (station < polyline.Length);
+
+            return points;
+        }
+
+
         private DTO.DTO GetAlignmentDTO(DBObject obj)
         {
             using (var tr = obj.Database.TransactionManager.StartTransaction())
             {
+                string profileName = string.Empty;
+                List<double> points = null;
                 var dto = new SpeckleAutoCAD.DTO.DTO();
                 var alignment = obj as ACD.Alignment;
                 var polyLineId = alignment.GetPolyline();
                 var polyline = polyLineId.GetObject(OpenMode.ForRead) as Polyline;
-                var payload = polyline.ToPolycurvePayload();
+
+                var profileIds = alignment.GetProfileIds();
+                foreach (ObjectId profileId in profileIds)
+                {
+                    using (var profile = tr.GetObject(profileId, OpenMode.ForRead) as ACD.Profile)
+                    {
+                        if (profile.ProfileType == ACD.ProfileType.EG)
+                        {
+                            continue;
+                        }
+
+                        profileName = profile.Name;
+                        points = Get3dPath(polyline, profile);
+                        break;
+                    }
+                }
+
+                var payload = new DTO.PolylinePayload();
+                payload.Closed = polyline.Closed;
+                payload.Coordinates = points;
                 var properties = payload.Properties;
 
-                properties["AlignmentType"] = Enum.GetName(typeof(ACD.AlignmentType), alignment.AlignmentType);
-                properties["EndingStation"] = alignment.EndingStation;
-                properties["Layer"] = alignment.Layer;
-                properties["Name"] = alignment.Name;
-                properties["StartingStation"] = alignment.StartingStation;
+                properties["Name"] = $"{alignment.Name} - {profileName}";
+                properties["AlignmentName"] = alignment.Name;
+                properties["ProfileName"] = profileName;
 
 
                 payload.PropertySets = GetPropertySets(alignment);
-                dto.ObjectType = Constants.Polyline;
+                dto.ObjectType = Constants.Polyline3d;
                 dto.Data = JsonConvert.SerializeObject(payload);
                 return dto;
             }

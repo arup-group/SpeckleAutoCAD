@@ -9,6 +9,28 @@ namespace SpeckleAutoCAD.Helpers
 {
     public static class Converter
     {
+        public static DTO.PolylinePayload ToPolylinePayload(this Polyline3d line)
+        {
+            Point3d point;
+            var coordinates = new List<double>();
+
+            foreach (PolylineVertex3d vertex in line)
+            {
+                point = vertex.Position;
+                coordinates.Add(point.X);
+                coordinates.Add(point.Y);
+                coordinates.Add(point.Z);
+            }
+
+            var o = new DTO.PolylinePayload
+            {
+                Closed = line.Closed,
+                Coordinates = coordinates
+            };
+
+            return o;
+        }
+
         public static DTO.LinePayload ToLinePayload(this Line line)
         {
             var o = new DTO.LinePayload
@@ -100,6 +122,48 @@ namespace SpeckleAutoCAD.Helpers
 
             return new Vector3d(x, y, z);
         }
+
+        public static DTO.PolycurvePayload PointsToPolycurvePayload(List<Point3d> points, bool closed, double length, string layer)
+        {
+            DTO.Segment segment;
+            var polycurvePayload = new DTO.PolycurvePayload();
+            polycurvePayload.Closed = closed;
+            polycurvePayload.Segments = new List<DTO.Segment>();
+
+            for (int i = 0; i < points.Count - 2; i++)
+            {
+                segment = new DTO.Segment();
+                segment.SegmentType = SegmentType.Line;
+                var linePayload = new DTO.LinePayload
+                {
+                    Coordinates = new List<double>
+                            {
+                                points[i].X,
+                                points[i].Y,
+                                points[i].Z,
+                                points[i + 1].X,
+                                points[i + 1].Y,
+                                points[i + 1].Z
+                             }
+                };
+
+                segment.Data = JsonConvert.SerializeObject(linePayload);
+                polycurvePayload.Segments.Add(segment);
+            }
+
+            var lastIndex = points.Count - 1;
+            var properties = new Dictionary<string, dynamic>()
+            {
+                {"EndPoint", new DTO.PointPayload {Value = new List<double> {points[lastIndex].X, points[lastIndex].Y, points[lastIndex].Z} }},
+                {"Layer", layer},
+                {"Length", length},
+                {"StartPoint", new DTO.PointPayload {Value = new List<double> {points[0].X, points[0].Y, points[0].Z} }},
+            };
+
+            polycurvePayload.Properties = properties;
+            return polycurvePayload;
+        }
+
 
         public static DTO.PolycurvePayload ToPolycurvePayload(this Polyline polyline)
         {

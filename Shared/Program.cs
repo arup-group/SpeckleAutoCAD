@@ -139,6 +139,152 @@ namespace SpeckleAutoCAD
             //    }
             //}
         }
+
+        [CommandMethod("mydonothing")]
+        public void MyDonothing()
+        {
+            var doc = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument;
+            var db = doc.Database;
+            var handles = new List<long>();
+
+            using (var tr = db.TransactionManager.StartTransaction())
+            {
+                var btr = (BlockTableRecord)tr.GetObject(SymbolUtilityServices.GetBlockModelSpaceId(db), OpenMode.ForRead);
+                var ids =
+                    from ObjectId id in btr
+                    where id.ObjectClass.GetRuntimeType() == typeof(ACD.Alignment)
+                    select id;
+
+                foreach (var id in ids)
+                {
+                    using (var o = tr.GetObject(id, OpenMode.ForRead) as ACD.Alignment)
+                    {
+                        handles.Add(o.Handle.Value);
+                        var polyLineId = o.GetPolyline();
+                    }
+                }
+
+                    tr.Commit();
+            }
+
+        }
+
+        [CommandMethod("myprofiles")]
+        public void MyGetProfiles()
+        {
+            double length =  0; ;
+            var doc = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument;
+            var db = doc.Database;
+            var alignmentId = Helpers.AutoCadConsoleHelper.PickAlignment(doc.Editor, "Pick alignment");
+            var entities = new List<Autodesk.AutoCAD.DatabaseServices.DBObject>();
+            using (var tr = db.TransactionManager.StartTransaction())
+            {
+                using (var alignment = tr.GetObject(alignmentId, OpenMode.ForRead) as ACD.Alignment)
+                {
+                    var profileIds = alignment.GetProfileIds();
+                    foreach (ObjectId profileId in profileIds)
+                    {
+                        using (var profile = tr.GetObject(profileId, OpenMode.ForRead) as ACD.Profile)
+                        {
+                            if (profile.Name == "_VP1 - Alignment - (1)")
+                            {                               
+                                Helpers.AutoCadConsoleHelper.ExplodeProfile(profile, entities);
+                            }
+                            
+                        }
+                    }
+
+                    // Open the Block table record for read
+                    BlockTable acBlkTbl;
+                    acBlkTbl = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
+
+                    // Open the Block table record Model space for write
+                    BlockTableRecord acBlkTblRec;
+                    acBlkTblRec = tr.GetObject(acBlkTbl[BlockTableRecord.ModelSpace],
+                                                    OpenMode.ForWrite) as BlockTableRecord;
+
+
+
+                    foreach (var o in entities)
+                    {
+                        try
+                        {
+                            acBlkTblRec.AppendEntity(o as Entity);
+                            tr.AddNewlyCreatedDBObject(o, true);
+                        }
+                        catch (System.Exception ex)
+                        {
+                            var s = ex.Message;
+                        }
+                        
+                    }
+                }
+
+                tr.Commit();
+            }
+
+            foreach (var o in entities)
+            {
+                try
+                {
+                    dynamic o2 = o;
+                    length += o2.Length;
+                }
+                catch (System.Exception ex)
+                {
+                    var s = ex.Message;
+                }
+
+            }
+
+            //using (var tr = db.TransactionManager.StartTransaction())
+            //{
+            //    foreach (var h in handles)
+            //    {
+            //        var handle = new Handle(h);
+            //        ObjectId objectId = db.GetObjectId(false, handle, 0);
+            //        using (DBObject obj = tr.GetObject(objectId, OpenMode.ForRead))
+            //        {
+            //            var x = obj as ACD.Alignment;
+            //            var y = x.GetPolyline();
+            //        }
+            //    }
+            //}
+        }
+
+        [CommandMethod("my3d")]
+        public void MyAlignment2Polyline()
+        {
+            var doc = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument;
+            var db = doc.Database;
+            var alignmentId = Helpers.AutoCadConsoleHelper.PickAlignment(doc.Editor, "Pick alignment");
+
+            using (var tr = db.TransactionManager.StartTransaction())
+            {
+                using (var alignment = tr.GetObject(alignmentId, OpenMode.ForRead) as ACD.Alignment)
+                {
+                    var profileIds = alignment.GetProfileIds();
+                    foreach (ObjectId profileId in profileIds)
+                    {
+                        using (var profile = tr.GetObject(profileId, OpenMode.ForRead) as ACD.Profile)
+                        {
+                            if (profile.Name == "_VP1 - Alignment - (1)")
+                            {
+                                var p3d = Helpers.AutoCadConsoleHelper.AlignmentToPolyline3d(alignment, profile);
+                            }
+
+                        }
+                    }
+
+                }
+
+                tr.Commit();
+            }
+
+
+
+        }
+
         [CommandMethod("Speckle")]
         public void Speckle()
         {

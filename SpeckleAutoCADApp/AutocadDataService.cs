@@ -41,6 +41,10 @@ namespace SpeckleAutoCADApp
                     var polycurvePayload = JsonConvert.DeserializeObject<PolycurvePayload>(dto.Data);
                     var polycurve = polycurvePayload.ToSpecklePolycurve();
                     return polycurve;
+                case Constants.Polyline3d:
+                    var polylinePayload = JsonConvert.DeserializeObject<PolylinePayload>(dto.Data);
+                    var polyline = polylinePayload.ToSpecklePolyline();
+                    return polyline;
                 default:
                     return new SpeckleObject();
             }
