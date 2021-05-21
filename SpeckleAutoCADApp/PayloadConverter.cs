@@ -22,7 +22,9 @@ namespace SpeckleAutoCADApp
         public static SpecklePolyline ToSpecklePolyline(this PolylinePayload payload)
         {
             var line = new SpecklePolyline(payload.Coordinates);
+            line.Name = payload.Name;
             line.Closed = payload.Closed;
+            line.Properties = payload.Properties;
             return line;
         }
 

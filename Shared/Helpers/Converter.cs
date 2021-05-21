@@ -24,9 +24,12 @@ namespace SpeckleAutoCAD.Helpers
 
             var o = new DTO.PolylinePayload
             {
+                
                 Closed = line.Closed,
                 Coordinates = coordinates
             };
+
+            o.Properties = new Dictionary<string, dynamic>();
 
             return o;
         }

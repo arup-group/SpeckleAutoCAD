@@ -506,11 +506,11 @@ namespace SpeckleAutoCAD
             return JsonConvert.SerializeObject(handles);
         }
 
-        public static List<double> Get3dPath(Polyline polyline, ACD.Profile profile)
+        public static Point3dCollection Get3dPath(Polyline polyline, ACD.Profile profile)
         {
             Point3d point;
             double interval = 1.0;
-            var points = new List<double>();
+            var points = new Point3dCollection();
             var station = -interval;
             double elevation;
 
@@ -524,9 +524,8 @@ namespace SpeckleAutoCAD
 
                 elevation = profile.ElevationAt(station);
                 point = polyline.GetPointAtDist(station);
-                points.Add(point.X);
-                points.Add(point.Y);
-                points.Add(elevation);
+                point = new Point3d(point.X, point.Y, elevation);
+                points.Add(point);
             } while (station < polyline.Length);
 
             return points;
@@ -538,7 +537,7 @@ namespace SpeckleAutoCAD
             using (var tr = obj.Database.TransactionManager.StartTransaction())
             {
                 string profileName = string.Empty;
-                List<double> points = null;
+                Point3dCollection points = null;
                 var dto = new SpeckleAutoCAD.DTO.DTO();
                 var alignment = obj as ACD.Alignment;
                 var polyLineId = alignment.GetPolyline();
@@ -560,12 +559,11 @@ namespace SpeckleAutoCAD
                     }
                 }
 
-                var payload = new DTO.PolylinePayload();
-                payload.Closed = polyline.Closed;
-                payload.Coordinates = points;
+                var poly3d = new Polyline3d(Poly3dType.SimplePoly, points, polyline.Closed);
+                var payload = poly3d.ToPolylinePayload();
+                payload.Name = $"{alignment.Name} - {profileName}";
                 var properties = payload.Properties;
 
-                properties["Name"] = $"{alignment.Name} - {profileName}";
                 properties["AlignmentName"] = alignment.Name;
                 properties["ProfileName"] = profileName;
 

@@ -140,7 +140,8 @@ namespace SpeckleAutoCAD
             //}
         }
 
-        [CommandMethod("mydonothing")]
+
+        //[CommandMethod("mydonothing")]
         public void MyDonothing()
         {
             var doc = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument;
@@ -169,7 +170,7 @@ namespace SpeckleAutoCAD
 
         }
 
-        [CommandMethod("myprofiles")]
+        //[CommandMethod("myprofiles")]
         public void MyGetProfiles()
         {
             double length =  0; ;
@@ -252,7 +253,7 @@ namespace SpeckleAutoCAD
             //}
         }
 
-        [CommandMethod("my3d")]
+        //[CommandMethod("my3d")]
         public void MyAlignment2Polyline()
         {
             var doc = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument;

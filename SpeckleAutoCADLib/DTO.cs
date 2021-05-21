@@ -76,5 +76,6 @@ namespace SpeckleAutoCAD.DTO
     {
         public bool Closed { get; set; }
         public List<double> Coordinates { get; set; }
+        public string Name { get; set; }
     }
 }
