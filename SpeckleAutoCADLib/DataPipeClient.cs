@@ -23,9 +23,14 @@ namespace SpeckleAutoCAD
         public Response SendRequest(Request request)
         {
             var sRequest = JsonConvert.SerializeObject(request);
-            streamWriter.WriteLine(sRequest);
+            string sResponse;
 
-            var sResponse = streamReader.ReadLine();
+            lock (lockObject)
+            {
+                streamWriter.WriteLine(sRequest);
+                sResponse = streamReader.ReadLine();
+            }
+            
             var response = JsonConvert.DeserializeObject<Response>(sResponse);
             return response;
         }
@@ -34,5 +39,6 @@ namespace SpeckleAutoCAD
         private PipeStream pipeClientOut;
         private StreamReader streamReader;
         private StreamWriter streamWriter;
+        private readonly object lockObject = new Object();
     }
 }

@@ -193,6 +193,15 @@ namespace SpeckleAutoCAD
 
                         response.StatusCode = 200;
                         break;
+                    case Operation.GetAllAlignmentProfileIds:
+                        response.Operation = request.Operation;
+                        pr.ReportProgress(() =>
+                        {
+                            response.Data = GetAlignmentProfileIdsAsJSON();
+                        });
+
+                        response.StatusCode = 200;
+                        break;
                     default:
                         response.Data = string.Empty;
                         response.StatusCode = 400;
@@ -264,6 +273,42 @@ namespace SpeckleAutoCAD
             }
 
             return JsonConvert.SerializeObject(arcList);
+        }
+
+        private string GetAlignmentProfileIdsAsJSON()
+        {
+            var profileList = new List<long>();
+            RXClass rxClass = RXClass.GetClass(typeof(ACD.Alignment));
+            var db = BoundDocument.Database;
+            using (var tr = db.TransactionManager.StartTransaction())
+            {
+                var btr = (BlockTableRecord)tr.GetObject(SymbolUtilityServices.GetBlockModelSpaceId(db), OpenMode.ForRead);
+                var alignmentIds =
+                    from ObjectId id in btr
+                    where id.ObjectClass.IsDerivedFrom(rxClass)
+                    select id;
+
+                foreach (var alignmentId in alignmentIds)
+                {
+                    using (var alignment = (ACD.Alignment)tr.GetObject(alignmentId, OpenMode.ForRead))
+                    {
+                        using (var profileIds = alignment.GetProfileIds())
+                        {
+                            foreach (ObjectId profileId in profileIds)
+                            {
+                                using (var profile = tr.GetObject(profileId, OpenMode.ForRead))
+                                {
+                                    profileList.Add(profile.Handle.Value);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                tr.Commit();
+            }
+
+            return JsonConvert.SerializeObject(profileList);
         }
 
         private string GetPolylineIdsAsJSON()
@@ -396,12 +441,9 @@ namespace SpeckleAutoCAD
                     {
                         dto = GetDTO(obj as Polyline);
                     }
-                    else if (objectId.ObjectClass.GetRuntimeType() == typeof(ACD.Alignment))
+                    else if (objectId.ObjectClass.GetRuntimeType() == typeof(ACD.Profile))
                     {
-                        //var x = obj as ACD.Alignment;
-                        //var y = x.GetPolyline();
-                        dto = GetAlignmentDTO(obj);
-                        //dto = new DTO.DTO();
+                        dto = GetAlignmentProfileDTO(obj);
                     }
                     else
                     {
@@ -469,7 +511,32 @@ namespace SpeckleAutoCAD
                     {
                         using (var o = tr.GetObject(id, OpenMode.ForRead))
                         {
-                            list.Add(o.Handle.Value.ToString());
+                            if (id.ObjectClass.GetRuntimeType() == typeof(ACD.Alignment))
+                            {
+                                var alignment = o as ACD.Alignment;
+                                using (var profileIds = alignment.GetProfileIds())
+                                {
+                                    foreach (ObjectId profileId in profileIds)
+                                    {
+                                        using (var profile = tr.GetObject(profileId, OpenMode.ForRead))
+                                        {
+                                            list.Add(profile.Handle.Value.ToString());
+                                        }
+                                    }
+                                }
+                            }
+                            else if (id.ObjectClass.GetRuntimeType() == typeof(Line))
+                            {
+                                list.Add(o.Handle.Value.ToString());
+                            }
+                            else if (id.ObjectClass.GetRuntimeType() == typeof(Arc))
+                            {
+                                list.Add(o.Handle.Value.ToString());
+                            }
+                            else if (id.ObjectClass.GetRuntimeType() == typeof(Polyline))
+                            {
+                                list.Add(o.Handle.Value.ToString());
+                            }                            
                         }
                     }
                 }
@@ -532,45 +599,31 @@ namespace SpeckleAutoCAD
         }
 
 
-        private DTO.DTO GetAlignmentDTO(DBObject obj)
+        private DTO.DTO GetAlignmentProfileDTO(DBObject obj)
         {
+            var dto = new SpeckleAutoCAD.DTO.DTO();
+            var profile = obj as ACD.Profile;
+
             using (var tr = obj.Database.TransactionManager.StartTransaction())
-            {
-                string profileName = string.Empty;
-                Point3dCollection points = null;
-                var dto = new SpeckleAutoCAD.DTO.DTO();
-                var alignment = obj as ACD.Alignment;
-                var polyLineId = alignment.GetPolyline();
-                var polyline = polyLineId.GetObject(OpenMode.ForRead) as Polyline;
-
-                var profileIds = alignment.GetProfileIds();
-                foreach (ObjectId profileId in profileIds)
+            {               
+                using (var alignment = tr.GetObject(profile.AlignmentId, OpenMode.ForRead) as ACD.Alignment)
                 {
-                    using (var profile = tr.GetObject(profileId, OpenMode.ForRead) as ACD.Profile)
-                    {
-                        if (profile.ProfileType == ACD.ProfileType.EG)
-                        {
-                            continue;
-                        }
+                    var polyLineId = alignment.GetPolyline();
+                    var polyline = polyLineId.GetObject(OpenMode.ForRead) as Polyline;
+                    var points = Get3dPath(polyline, profile);
+                    var poly3d = new Polyline3d(Poly3dType.SimplePoly, points, polyline.Closed);
+                    var payload = poly3d.ToPolylinePayload();
+                    var properties = payload.Properties;
 
-                        profileName = profile.Name;
-                        points = Get3dPath(polyline, profile);
-                        break;
-                    }
+                    payload.Name = $"{alignment.Name} - {profile.Name}";                    
+                    properties["AlignmentName"] = alignment.Name;
+                    properties["ProfileName"] = profile.Name;
+                    payload.PropertySets = GetPropertySets(alignment);
+                    dto.Data = JsonConvert.SerializeObject(payload);
                 }
 
-                var poly3d = new Polyline3d(Poly3dType.SimplePoly, points, polyline.Closed);
-                var payload = poly3d.ToPolylinePayload();
-                payload.Name = $"{alignment.Name} - {profileName}";
-                var properties = payload.Properties;
-
-                properties["AlignmentName"] = alignment.Name;
-                properties["ProfileName"] = profileName;
-
-
-                payload.PropertySets = GetPropertySets(alignment);
                 dto.ObjectType = Constants.Polyline3d;
-                dto.Data = JsonConvert.SerializeObject(payload);
+                
                 return dto;
             }
         }

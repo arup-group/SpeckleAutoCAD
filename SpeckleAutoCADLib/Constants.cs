@@ -36,14 +36,15 @@ namespace SpeckleAutoCAD
         GetAllPolylineIds,
         GetSelectionCount,
         GetSelectedIds,
-        GetAllAlignmentIds
+        GetAllAlignmentIds,
+        GetAllAlignmentProfileIds
 
     }
 
     public static class Constants 
     {
-        public const string SpeckleAutoCADStreamsKey = "SpeckleAutoCADStreams";
-        public const string SpeckleAutoCADClientsKey = "SpeckleAutoCADClients";
+        public const string SpeckleAutoCADStreamsKey = "com.arup.speckle.streams";
+        public const string SpeckleAutoCADClientsKey = "com.arup.speckle.clients";
         public const string Arc = "Arc";
         public const string Line = "Line";
         public const string None = "None";

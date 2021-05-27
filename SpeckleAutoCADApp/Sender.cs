@@ -7,6 +7,7 @@ using System.Reflection;
 using System;
 using System.Linq;
 using SpeckleCore.Data;
+using System.Threading.Tasks;
 
 namespace SpeckleAutoCADApp.UI
 {
@@ -38,7 +39,6 @@ namespace SpeckleAutoCADApp.UI
             ISelectionFilter filter = JsonConvert.DeserializeObject(JsonConvert.SerializeObject(client.filter), GetFilterType(client.filter.Type.ToString()));
             //GetSelectionFilterObjects(filter, client._id.ToString(), client.streamId.ToString());
             GetSelectionFilterObjects(filter, client._id.ToString(), client.streamId.ToString());
-            SpeckleTelemetry.RecordStreamCreated("AutoCAD");
         }
 
         // Send objects to Speckle server. Triggered on "Push!".
@@ -55,6 +55,9 @@ namespace SpeckleAutoCADApp.UI
             objects = GetSelectionFilterObjects(filter, client._id.ToString(), client.streamId.ToString());
 
             var apiClient = new SpeckleApiClient((string)client.account.RestApi) { AuthToken = (string)client.account.Token };
+            var task = Task.Run(async () => { await apiClient.IntializeUser(); });
+            task.Wait();
+            apiClient.ClientType = "AutoCAD";
 
             var convertedObjects = new List<SpeckleObject>();
             var placeholders = new List<SpeckleObject>();
@@ -192,8 +195,6 @@ namespace SpeckleAutoCADApp.UI
                 errorMsg,
                 errors
             }));
-
-            SpeckleTelemetry.RecordStreamUpdated("AutoCAD");
         }
 
         private Type GetFilterType(string typeString)
@@ -267,7 +268,7 @@ namespace SpeckleAutoCADApp.UI
                             case Constants.Alignment:
                                 request = new Request
                                 {
-                                    Operation = Operation.GetAllAlignmentIds,
+                                    Operation = Operation.GetAllAlignmentProfileIds,
                                     Data = string.Empty
                                 };
 
@@ -350,6 +351,7 @@ namespace SpeckleAutoCADApp.UI
                     Data = string.Empty
                 };
 
+                
                 response = dataPipeClient.SendRequest(request);
                 if (!string.IsNullOrEmpty(response.Data))
                 {
