@@ -37,7 +37,8 @@ namespace SpeckleAutoCAD
         GetSelectionCount,
         GetSelectedIds,
         GetAllAlignmentIds,
-        GetAllAlignmentProfileIds
+        GetAllAlignmentProfileIds,
+        GetLengthUnit
 
     }
 

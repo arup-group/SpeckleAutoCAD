@@ -95,5 +95,24 @@ namespace SpeckleAutoCADApp
         }
 
         public static DataPipeClient DataPipeClient { get; set; }
+
+        public static string GetLengthUnit()
+        {
+            var request = new Request
+            {
+                Operation = Operation.GetLengthUnit,
+                Data = string.Empty
+            };
+
+            var response = DataPipeClient.SendRequest(request);
+            if (!string.IsNullOrEmpty(response.Data))
+            {
+                return JsonConvert.DeserializeObject<string>(response.Data);
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
     }
 }

@@ -202,6 +202,15 @@ namespace SpeckleAutoCAD
 
                         response.StatusCode = 200;
                         break;
+                    case Operation.GetLengthUnit:
+                        response.Operation = request.Operation;
+                        pr.ReportProgress(() =>
+                        {
+                            response.Data = GetLengthUnitAsJSON();
+                        });
+
+                        response.StatusCode = 200;
+                        break;
                     default:
                         response.Data = string.Empty;
                         response.StatusCode = 400;
@@ -626,6 +635,12 @@ namespace SpeckleAutoCAD
                 
                 return dto;
             }
+        }
+
+        private string GetLengthUnitAsJSON()
+        {
+            var unit = BoundDocument.Database.Insunits;
+            return JsonConvert.SerializeObject(unit.ToString());
         }
 
         private ProgressReporter pr;

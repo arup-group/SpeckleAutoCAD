@@ -61,7 +61,7 @@ namespace SpeckleAutoCADApp.UI
             var convertedObjects = new List<SpeckleObject>();
             var placeholders = new List<SpeckleObject>();
 
-            //var units = CurrentDoc.Document.GetUnits().GetFormatOptions(UnitType.UT_Length).DisplayUnits.ToString().ToLowerInvariant().Replace("dut_", "");
+            var units = AutocadDataService.GetLengthUnit();
             //InjectScaleInKits(GetScale(units)); // this is used for feet to sane units conversion.
 
             int i = 0;
@@ -164,15 +164,13 @@ namespace SpeckleAutoCADApp.UI
 
             var myStream = new SpeckleStream() { Objects = placeholders };
 
-            //var ug = UnitUtils.GetUnitGroup(UnitType.UT_Length);
-            //var baseProps = new Dictionary<string, object>();
+            var baseProps = new Dictionary<string, object>();
 
-            //baseProps["units"] = units;
+            baseProps["units"] = units;
 
             //baseProps["unitsDictionary"] = GetAndClearUnitDictionary();
 
-            //myStream.BaseProperties = baseProps;
-            //myStream.BaseProperties =  JsonConvert.SerializeObject(baseProps);
+            myStream.BaseProperties =  baseProps;
 
             NotifyUi("update-client", JsonConvert.SerializeObject(new
             {
@@ -182,6 +180,7 @@ namespace SpeckleAutoCADApp.UI
                 loadingBlurb = "Updating stream."
             }));
 
+            apiClient.Stream = myStream;
             var response = apiClient.StreamUpdateAsync((string)client.streamId, myStream).Result;
 
             var plural = objects.Count() == 1 ? "" : "s";
