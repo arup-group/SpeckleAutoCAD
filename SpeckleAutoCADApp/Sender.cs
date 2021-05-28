@@ -37,7 +37,6 @@ namespace SpeckleAutoCADApp.UI
             response = dataPipeClient.SendRequest(request);
 
             ISelectionFilter filter = JsonConvert.DeserializeObject(JsonConvert.SerializeObject(client.filter), GetFilterType(client.filter.Type.ToString()));
-            //GetSelectionFilterObjects(filter, client._id.ToString(), client.streamId.ToString());
             GetSelectionFilterObjects(filter, client._id.ToString(), client.streamId.ToString());
         }
 
@@ -297,7 +296,7 @@ namespace SpeckleAutoCADApp.UI
                 var myClient = clients.FirstOrDefault(cl => (string)cl._id == (string)clientId);
                 myClient.objects = JsonConvert.DeserializeObject<dynamic>(JsonConvert.SerializeObject(myStream.Objects));
 
-                // Persist state and clients to revit file
+                // Persist state and clients to autocad file
                 request = new Request
                 {
                     Operation = Operation.SaveClientState,
@@ -388,6 +387,35 @@ namespace SpeckleAutoCADApp.UI
             {
                 selectedObjects
             }));
+        }
+
+        public override void UpdateSender(string args)
+        {
+            var client = JsonConvert.DeserializeObject<dynamic>(args);
+            var index = clients.FindIndex(cl => (string)cl._id == (string)client._id);
+            clients[index] = client;
+
+            var speckleStream = speckleStreams.FirstOrDefault(st => st.StreamId == (string)client.streamId);
+            speckleStream.Name = (string)client.name;
+
+            var request = new Request
+            {
+                Operation = Operation.SaveClientState,
+                Data = JsonConvert.SerializeObject(clients)
+            };
+
+            var response = dataPipeClient.SendRequest(request);
+            if (response.StatusCode != 200)
+            {
+                return;
+            }
+
+            request.Operation = Operation.SaveStreamState;
+            request.Data = JsonConvert.SerializeObject(speckleStreams);
+            response = dataPipeClient.SendRequest(request);
+
+            ISelectionFilter filter = JsonConvert.DeserializeObject(JsonConvert.SerializeObject(client.filter), GetFilterType(client.filter.Type.ToString()));
+            GetSelectionFilterObjects(filter, client._id.ToString(), client.streamId.ToString());
         }
     }
 }

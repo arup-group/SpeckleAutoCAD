@@ -137,11 +137,6 @@ namespace SpeckleAutoCADApp.UI
             
         }
 
-        public override void UpdateSender(string args)
-        {
-            
-        }
-
         private string GetDocHash()
         {
             return SpeckleCore.Converter.getMd5Hash(GetDocumentLocation() + GetFileName());
