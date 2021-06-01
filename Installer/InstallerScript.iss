@@ -31,7 +31,6 @@ ChangesAssociations=yes
 ; PrivilegesRequired must be "none" to access ProgramData
 PrivilegesRequired=none
 VersionInfoVersion={#AppVersion}
-SignTool=signtool
 SignedUninstaller=yes
 
 
@@ -44,11 +43,11 @@ Name: autocad21; Description: Speckle for AutoCAD/Civil3D 2021 WIP;
 
 [Files]
 Source: "..\Release\SpeckleAutoCAD2020\*"; Excludes: "SpeckleAutoCAD*.dll"; DestDir: "{userappdata}\Autodesk\ApplicationPlugins\SpeckleAutoCAD2020.bundle\"; Flags: ignoreversion recursesubdirs; Components: autocad20
-Source: "..\Release\SpeckleAutoCAD2020\Contents\Win64\2020\SpeckleAutoCAD*.dll"; DestDir: "{userappdata}\Autodesk\ApplicationPlugins\SpeckleAutoCAD2020.bundle\Contents\Win64\2020\"; Flags: ignoreversion recursesubdirs sign; Components: autocad20
-;Source: "..\Release\SpeckleAutoCAD2020\Contents\Win64\2020\SpeckleAutoCAD*.exe"; DestDir: "{userappdata}\Autodesk\ApplicationPlugins\SpeckleAutoCAD2020.bundle\Contents\Win64\2020\"; Flags: ignoreversion recursesubdirs sign; Components: autocad20
+Source: "..\Release\SpeckleAutoCAD2020\Contents\Win64\2020\SpeckleAutoCAD*.dll"; DestDir: "{userappdata}\Autodesk\ApplicationPlugins\SpeckleAutoCAD2020.bundle\Contents\Win64\2020\"; Flags: ignoreversion recursesubdirs; Components: autocad20
+;Source: "..\Release\SpeckleAutoCAD2020\Contents\Win64\2020\SpeckleAutoCAD*.exe"; DestDir: "{userappdata}\Autodesk\ApplicationPlugins\SpeckleAutoCAD2020.bundle\Contents\Win64\2020\"; Flags: ignoreversion recursesubdirs; Components: autocad20
 Source: "..\Release\SpeckleAutoCAD2021\*"; Excludes: "SpeckleAutoCAD*.dll"; DestDir: "{userappdata}\Autodesk\ApplicationPlugins\SpeckleAutoCAD2021.bundle\"; Flags: ignoreversion recursesubdirs; Components: autocad21
-Source: "..\Release\SpeckleAutoCAD2021\Contents\Win64\2021\SpeckleAutoCAD*.dll"; DestDir: "{userappdata}\Autodesk\ApplicationPlugins\SpeckleAutoCAD2021.bundle\Contents\Win64\2021\"; Flags: ignoreversion recursesubdirs sign; Components: autocad21
-;Source: "..\Release\SpeckleAutoCAD2021\Contents\Win64\2021\SpeckleAutoCAD*.exe"; DestDir: "{userappdata}\Autodesk\ApplicationPlugins\SpeckleAutoCAD2021.bundle\Contents\Win64\2021\"; Flags: ignoreversion recursesubdirs sign; Components: autocad21
+Source: "..\Release\SpeckleAutoCAD2021\Contents\Win64\2021\SpeckleAutoCAD*.dll"; DestDir: "{userappdata}\Autodesk\ApplicationPlugins\SpeckleAutoCAD2021.bundle\Contents\Win64\2021\"; Flags: ignoreversion recursesubdirs; Components: autocad21
+;Source: "..\Release\SpeckleAutoCAD2021\Contents\Win64\2021\SpeckleAutoCAD*.exe"; DestDir: "{userappdata}\Autodesk\ApplicationPlugins\SpeckleAutoCAD2021.bundle\Contents\Win64\2021\"; Flags: ignoreversion recursesubdirs; Components: autocad21
 
 ;analytics
 Source: "..\Analytics\bin\Release\net461\win-x64\*"; DestDir: "{#AnalyticsFolder}"; Flags: ignoreversion recursesubdirs;
