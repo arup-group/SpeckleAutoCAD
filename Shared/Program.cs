@@ -59,7 +59,7 @@ namespace SpeckleAutoCAD
 
         #endregion  
 
-        [CommandMethod("speckleruncommand")]
+        [CommandMethod("speckleruncommand", CommandFlags.UsePickSet | CommandFlags.NoHistory)]
         public void RunCommand()
         {
             try
@@ -253,40 +253,8 @@ namespace SpeckleAutoCAD
             //}
         }
 
-        //[CommandMethod("my3d")]
-        public void MyAlignment2Polyline()
-        {
-            var doc = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument;
-            var db = doc.Database;
-            var alignmentId = Helpers.AutoCadConsoleHelper.PickAlignment(doc.Editor, "Pick alignment");
 
-            using (var tr = db.TransactionManager.StartTransaction())
-            {
-                using (var alignment = tr.GetObject(alignmentId, OpenMode.ForRead) as ACD.Alignment)
-                {
-                    var profileIds = alignment.GetProfileIds();
-                    foreach (ObjectId profileId in profileIds)
-                    {
-                        using (var profile = tr.GetObject(profileId, OpenMode.ForRead) as ACD.Profile)
-                        {
-                            if (profile.Name == "_VP1 - Alignment - (1)")
-                            {
-                                var p3d = Helpers.AutoCadConsoleHelper.AlignmentToPolyline3d(alignment, profile);
-                            }
-
-                        }
-                    }
-
-                }
-
-                tr.Commit();
-            }
-
-
-
-        }
-
-        [CommandMethod("Speckle")]
+        [CommandMethod("Speckle", CommandFlags.UsePickSet)]
         public void Speckle()
         {
             try

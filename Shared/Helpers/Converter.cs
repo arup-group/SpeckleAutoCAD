@@ -72,6 +72,7 @@ namespace SpeckleAutoCAD.Helpers
 
         public static DTO.ArcPayload ToArcPayload(this Arc arc)
         {
+            //Whilst AutoCAD has a number of angle display formats, the actual angle unit is the radian.
             //Choose the x-axis such that it lies along the line connecting the center of the arc to it's  start point (A).
             //This way start angle is always 0 as Speckle connectors expect.
             var xAxis = Normalize(arc.Center.GetVectorTo(arc.StartPoint));
@@ -210,6 +211,7 @@ namespace SpeckleAutoCAD.Helpers
 
         public static DTO.ArcPayload ToArcPayload(this CircularArc3d arc)
         {
+            //Whilst AutoCAD has a number of angle display formats, the actual angle unit is the radian.
             //Choose the x-axis such that it lies along the line connecting the center of the arc to it's  start point (A).
             //This way start angle is always 0 as Speckle connectors expect.
             var xAxis = Normalize(arc.Center.GetVectorTo(arc.StartPoint));

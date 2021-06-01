@@ -114,12 +114,42 @@ namespace SpeckleAutoCADApp.UI
 
         //public override void PushSender(string args)
         //{
-            
+
         //}
 
+        /// <summary>
+        /// Deletes a client, and persists the information to the file.
+        /// </summary>
+        /// <param name="args"></param>
         public override void RemoveClient(string args)
         {
-            
+            var client = JsonConvert.DeserializeObject<dynamic>(args);
+            var clientIndex = clients.FindIndex(cl => cl.clientId == client.clientId);
+
+            if (clientIndex == -1)
+            {
+                return;
+            }
+
+            clients.RemoveAt(clientIndex);
+
+            var streamIndex = speckleStreams.FindIndex(x => x.StreamId == (string)client.streamId);
+            if (streamIndex != -1)
+            {
+                speckleStreams.RemoveAt(streamIndex);
+            }
+
+            // persist the changes please
+            var request = new Request
+            {
+                Operation = Operation.SaveClientState,
+                Data = JsonConvert.SerializeObject(clients)
+            };
+
+            var response = dataPipeClient.SendRequest(request);
+            request.Operation = Operation.SaveStreamState;
+            request.Data = JsonConvert.SerializeObject(speckleStreams);
+            response = dataPipeClient.SendRequest(request);
         }
 
         public override void RemoveObjectsFromSender(string args)
