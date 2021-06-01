@@ -51,7 +51,7 @@ Source: "..\Release\SpeckleAutoCAD2021\Contents\Win64\2021\SpeckleAutoCAD*.dll";
 ;Source: "..\Release\SpeckleAutoCAD2021\Contents\Win64\2021\SpeckleAutoCAD*.exe"; DestDir: "{userappdata}\Autodesk\ApplicationPlugins\SpeckleAutoCAD2021.bundle\Contents\Win64\2021\"; Flags: ignoreversion recursesubdirs sign; Components: autocad21
 
 ;analytics
-Source: "..\Analytics\bin\Release\net461\win-x64\*"; DestDir: "{#AnalyticsFolder}"; Flags: ignoreversion recursesubdirs;
+Source: "..\Analytics\bin\Release\net461\win-x64\*"; DestDir: "{#AnalyticsFolder}"; Flags: ignoreversion recursesubdirs sign;
 
 [InstallDelete]
 Type: filesandordirs; Name: "{localappdata}\SpeckleAnalytics\*"
