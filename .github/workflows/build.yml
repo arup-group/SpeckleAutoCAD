@@ -62,6 +62,7 @@ jobs:
         
     - name: Get Name of exe file
       id: listName
+      working-directory: Installer\Build
       shell: powershell
       run: |
         $filename = (ls *.exe).Name
@@ -82,7 +83,7 @@ jobs:
           --azure-key-vault-certificate "OasysCodeSigning" `
           --timestamp-rfc3161 "http://timestamp.digicert.com" `
           --verbose `
-          ${{ github.workspace }}\${{ steps.listName.outputs.filename }} 
+          ${{ github.workspace }}\Installer\Build\${{ steps.listName.outputs.filename }} 
   
     - name: Upload build files
       uses: actions/upload-artifact@v2-preview
